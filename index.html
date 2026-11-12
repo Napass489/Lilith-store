@@ -1,0 +1,2002 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lilith store - ระบบสั่งซื้อไอเทมเกมฟาร์ม</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Mitr & Prompt for cute rounded Thai typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'sans-serif'],
+                        display: ['Mitr', 'sans-serif'],
+                    },
+                    colors: {
+                        pink: {
+                            50: '#FFF5F8',
+                            100: '#FFE8F0',
+                            200: '#FFD1E1',
+                            300: '#FFA8C7',
+                            400: '#FF75A5',
+                            500: '#F84683',
+                            600: '#E62A6B',
+                            700: '#C41954',
+                        },
+                        farm: {
+                            green: '#22C55E',
+                            greenDark: '#16A34A',
+                            bg: '#FFF0F5',
+                        }
+                    },
+                    boxShadow: {
+                        'cute': '0 6px 20px -4px rgba(248, 70, 131, 0.18), 0 2px 6px -1px rgba(248, 70, 131, 0.1)',
+                        'card': '0 4px 12px rgba(230, 42, 107, 0.08)',
+                        'btn': '0 4px 0px #C41954',
+                        'btn-sm': '0 2px 0px #C41954',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: linear-gradient(180deg, #FFE4EE 0%, #FFF5F8 50%, #FFE8F0 100%);
+            min-height: 100vh;
+            color: #4A2535;
+            overflow-x: hidden;
+        }
+        .font-cute {
+            font-family: 'Mitr', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FFF0F5;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FFA8C7;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #F84683;
+        }
+        /* Number input hide arrows */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        .btn-pink-gradient {
+            background: linear-gradient(180deg, #FF5E97 0%, #E62A6B 100%);
+            box-shadow: 0 4px 12px rgba(230, 42, 107, 0.35), inset 0 2px 2px rgba(255, 255, 255, 0.4);
+        }
+        .btn-pink-gradient:hover {
+            background: linear-gradient(180deg, #FF70A2 0%, #D4205E 100%);
+            transform: translateY(-1px);
+        }
+        .btn-pink-gradient:active {
+            transform: translateY(1px);
+        }
+        .phone-frame {
+            box-shadow: 0 20px 50px rgba(196, 25, 84, 0.18), 0 0 0 8px #FFD1E1, 0 0 0 11px #FFFFFF;
+        }
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+        .animate-float {
+            animation: floatSlow 3s ease-in-out infinite;
+        }
+        /* Custom Product Vertical Card (Matches Image 2 layout in Pink Theme) */
+        .prod-card-pink {
+            background: linear-gradient(180deg, #FF7EB3 0%, #F43F7A 100%);
+            box-shadow: 0 6px 14px rgba(230, 42, 107, 0.22), inset 0 2px 3px rgba(255, 255, 255, 0.45);
+        }
+        .prod-card-pink-soft {
+            background: linear-gradient(180deg, #FF94C2 0%, #EC4888 100%);
+            box-shadow: 0 6px 14px rgba(236, 72, 136, 0.2), inset 0 2px 3px rgba(255, 255, 255, 0.45);
+        }
+        .prod-circle- plate {
+            box-shadow: 0 4px 10px rgba(140, 15, 60, 0.22), inset 0 -3px 6px rgba(248, 70, 131, 0.12);
+        }
+    </style>
+</head>
+<body class="pb-12">
+
+    <!-- Hidden elements to preserve JS badge references after removing the top red-circled bar -->
+    <div class="hidden">
+        <span id="admin-badge-count">2</span>
+        <button id="mode-btn-customer"></button>
+        <button id="mode-btn-admin"></button>
+    </div>
+
+    <!-- Hidden flow header placeholder to preserve existing JS references without error -->
+    <div id="customer-flow-header" class="hidden"></div>
+
+    <!-- ================= MAIN CUSTOMER APP CONTAINER (Uniform Frame Size Across All 5 Screens) ================= -->
+    <main id="customer-app-view" class="max-w-md mx-auto px-3 sm:px-0 mt-4">
+        <div class="phone-frame bg-gradient-to-b from-[#FFEAF2] via-[#FFF7FA] to-[#FFEEF5] rounded-[36px] overflow-hidden h-[760px] flex flex-col relative border border-white">
+            
+            <!-- Simulated Mobile Status Bar + Corner Admin Icon & Order Search -->
+            <div class="px-5 pt-3 pb-1.5 flex items-center justify-between text-xs font-bold text-gray-800 select-none shrink-0">
+                <div class="flex items-center gap-2">
+                    <span>9:41</span>
+                    <span class="bg-pink-100 text-pink-600 text-[9px] font-bold px-2 py-0.5 rounded-full border border-pink-200">DEMO</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- Quick Search Button inside Phone Frame -->
+                    <button onclick="openOrderLookupModal()" title="ค้นหาโค้ดออเดอร์" class="bg-white/90 hover:bg-white text-pink-600 border border-pink-200 rounded-full px-2.5 py-1 text-[10px] font-cute flex items-center gap-1 shadow-sm transition active:scale-95">
+                        <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
+                        <span>ค้นหาออเดอร์</span>
+                    </button>
+                    <!-- Corner Admin Settings Icon Button -->
+                    <button onclick="switchMainMode('admin')" title="ตั้งค่าหลังบ้าน" class="relative w-7 h-7 rounded-full bg-white/90 hover:bg-white text-pink-600 border border-pink-200 flex items-center justify-center shadow-sm transition active:scale-95">
+                        <i class="fa-solid fa-gear text-xs"></i>
+                        <span id="phone-admin-badge" class="absolute -top-1 -right-1 bg-pink-500 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">2</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ======================================================================= -->
+            <!-- SCREEN 1: หน้าเลือกสินค้า (Select Items)                                  -->
+            <!-- ======================================================================= -->
+            <section id="screen-1" class="flex-1 flex flex-col overflow-hidden">
+                <!-- Scrollable Area inside Screen 1 -->
+                <div class="flex-1 overflow-y-auto pb-4">
+                    <!-- Shop Banner (Restored correct Lilith store banner) -->
+                    <div class="relative mx-3 mt-1 rounded-2xl overflow-hidden shadow-md border-2 border-white bg-pink-50">
+                        <img src="https://i.postimg.cc/8Cf0FcHR/att-bwu68m-O-KTYPe-Vol1Aj-RTUn-Co-Qz2741g-L2Qi7xn-Gh38.jpg" 
+                             alt="Lilith store Banner" 
+                             class="w-full h-auto object-contain block"
+                             onerror="this.src='https://placehold.co/600x260/FFD1E1/C41954?text=Lilith+store'">
+                    </div>
+
+                    <!-- Category Filter Grid (6 Categories kept unchanged) -->
+                    <div class="px-3 mt-3">
+                        <div id="category-buttons-container" class="grid grid-cols-5 gap-1.5">
+                            <!-- Rendered dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Product Accordion Sections (Minimal Compact Cards inside) -->
+                    <div id="product-sections-container" class="px-3 mt-3 space-y-3">
+                        <!-- Rendered dynamically via JS -->
+                    </div>
+                </div>
+
+                <!-- Sticky Bottom Summary Bar -->
+                <div class="shrink-0 bg-white/95 backdrop-blur-md border-t-2 border-pink-200 px-4 py-3 rounded-t-3xl shadow-[0_-8px_20px_rgba(248,70,131,0.12)]">
+                    <div class="flex items-center justify-between text-xs sm:text-sm mb-2 px-1">
+                        <div class="flex items-center gap-2 text-gray-700 font-medium">
+                            <span class="text-pink-500"><i class="fa-solid fa-cart-shopping"></i></span>
+                            <span>เลือกไว้ <strong id="s1-total-types" class="text-pink-600">0</strong> รายการ</span>
+                            <span class="text-gray-300">|</span>
+                            <span>รวม <strong id="s1-total-pieces" class="text-pink-600">0</strong> ชิ้น</span>
+                        </div>
+                        <div class="font-cute text-lg font-bold text-pink-600">
+                            <span id="s1-total-price">0</span>฿
+                        </div>
+                    </div>
+                    <button onclick="proceedToStep2()" class="w-full btn-pink-gradient text-white font-cute text-base py-2.5 rounded-full flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-basket-shopping"></i>
+                        <span>ดูยอดรวม</span>
+                        <i class="fa-solid fa-arrow-right text-sm"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ======================================================================= -->
+            <!-- SCREEN 2: หน้ารวมยอดสินค้า (Order Summary)                               -->
+            <!-- ======================================================================= -->
+            <section id="screen-2" class="hidden flex-1 flex flex-col justify-between overflow-hidden">
+                <!-- Top Header -->
+                <div class="shrink-0 px-4 py-3 flex items-center justify-between border-b border-pink-200/70 bg-white/60">
+                    <button onclick="navigateToStep(1)" class="w-8 h-8 rounded-full bg-white text-pink-600 flex items-center justify-center shadow-sm hover:bg-pink-50">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <h2 class="font-cute text-lg text-pink-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-basket-shopping text-pink-500"></i>
+                        <span>รวมยอดสินค้า</span>
+                    </h2>
+                    <div class="w-8"></div>
+                </div>
+
+                <!-- Scrollable Content -->
+                <div class="flex-1 overflow-y-auto pb-4">
+                    <!-- Selected Items Cards List -->
+                    <div id="s2-items-list" class="p-3.5 space-y-2.5">
+                        <!-- Rendered via JS -->
+                    </div>
+
+                    <!-- Summary Totals Card -->
+                    <div class="mx-3.5 mt-1 bg-white/95 rounded-2xl p-4 shadow-card border border-pink-100">
+                        <div class="space-y-2.5 text-sm border-b border-pink-100 pb-3">
+                            <div class="flex items-center justify-between text-gray-600">
+                                <span class="flex items-center gap-2">
+                                    <i class="fa-regular fa-file-lines text-pink-400"></i> จำนวนรายการที่เลือก
+                                </span>
+                                <span class="font-bold text-gray-800"><span id="s2-total-types">0</span> รายการ</span>
+                            </div>
+                            <div class="flex items-center justify-between text-gray-600">
+                                <span class="flex items-center gap-2">
+                                    <i class="fa-solid fa-box-open text-pink-400"></i> จำนวนสินค้าทั้งหมด
+                                </span>
+                                <span class="font-bold text-gray-800"><span id="s2-total-pieces">0</span> ชิ้น</span>
+                            </div>
+                        </div>
+                        <div class="pt-3 flex items-center justify-between">
+                            <span class="font-cute text-base text-gray-800">ยอดรวมทั้งสิ้น</span>
+                            <span class="font-cute text-2xl font-bold text-pink-600"><span id="s2-total-price">0</span>฿</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cute Farm Fence Illustration + Bottom Action -->
+                <div class="shrink-0">
+                    <div class="px-4 flex items-end justify-between opacity-90 pointer-events-none select-none -mb-2">
+                        <div class="flex items-end gap-1">
+                            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                                <rect x="28" y="20" width="6" height="40" rx="2" fill="#A16207"/>
+                                <path d="M12 18H48L54 25L48 32H12C10.5 32 9 30.5 9 29V21C9 19.5 10.5 18 12 18Z" fill="#D97706" stroke="#92400E" stroke-width="2"/>
+                                <circle cx="31" cy="25" r="2" fill="#FEF3C7"/>
+                                <ellipse cx="31" cy="58" rx="18" ry="5" fill="#86EFAC"/>
+                            </svg>
+                        </div>
+                        <div class="flex items-end">
+                            <span class="text-2xl">🌸</span>
+                            <span class="text-3xl -ml-1">🌿</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/95 backdrop-blur-md border-t-2 border-pink-200 px-4 py-3.5 rounded-t-3xl">
+                        <button onclick="navigateToStep(3)" class="w-full btn-pink-gradient text-white font-cute text-base py-3 rounded-full flex items-center justify-center gap-2 transition">
+                            <span>ดำเนินการต่อ</span>
+                            <i class="fa-solid fa-arrow-right text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ======================================================================= -->
+            <!-- SCREEN 3: หน้ายืนยันออเดอร์ (Confirm Order)                             -->
+            <!-- ======================================================================= -->
+            <section id="screen-3" class="hidden flex-1 flex flex-col justify-between overflow-hidden">
+                <!-- Top Header -->
+                <div class="shrink-0 px-4 py-3 flex items-center justify-between border-b border-pink-200/70 bg-white/60">
+                    <button onclick="navigateToStep(2)" class="w-8 h-8 rounded-full bg-white text-pink-600 flex items-center justify-center shadow-sm hover:bg-pink-50">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <h2 class="font-cute text-lg text-pink-700">ยืนยันออเดอร์</h2>
+                    <div class="w-8"></div>
+                </div>
+
+                <!-- Scrollable Area -->
+                <div class="flex-1 overflow-y-auto pb-4">
+                    <!-- 3-Step Progress Indicator -->
+                    <div class="px-6 py-3">
+                        <div class="relative flex items-center justify-between">
+                            <div class="absolute left-6 right-6 top-3.5 h-0.5 bg-pink-400 -z-0"></div>
+                            <div class="relative z-10 flex flex-col items-center">
+                                <div class="w-7 h-7 rounded-full bg-pink-500 text-white flex items-center justify-center text-xs shadow">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <span class="text-[11px] font-medium text-gray-600 mt-1">เลือกสินค้า</span>
+                            </div>
+                            <div class="relative z-10 flex flex-col items-center">
+                                <div class="w-7 h-7 rounded-full bg-pink-500 text-white flex items-center justify-center text-xs shadow">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <span class="text-[11px] font-medium text-gray-600 mt-1">รวมยอด</span>
+                            </div>
+                            <div class="relative z-10 flex flex-col items-center">
+                                <div class="w-7 h-7 rounded-full bg-pink-600 ring-4 ring-pink-200 text-white font-bold flex items-center justify-center text-xs shadow">
+                                    3
+                                </div>
+                                <span class="text-[11px] font-bold text-pink-700 mt-1">ยืนยันออเดอร์</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Farm Tag Input Card -->
+                    <div class="mx-3.5 bg-white/95 rounded-2xl p-3.5 shadow-card border border-pink-100">
+                        <label class="block font-cute text-sm text-gray-800 mb-2">
+                            <i class="fa-solid fa-tag text-pink-500 mr-1"></i> แท็กรับของ <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative flex items-center">
+                            <span class="absolute left-3.5 text-pink-500 font-bold text-base">#</span>
+                            <input type="text" id="farm-tag-input" placeholder="เช่น L123 หรือ ชื่อฟาร์มของคุณ" 
+                                   class="w-full pl-8 pr-4 py-2.5 rounded-xl border-2 border-pink-200 focus:border-pink-500 focus:outline-none text-sm font-medium text-gray-800 bg-pink-50/40">
+                        </div>
+                        <p id="tag-error-msg" class="hidden text-xs text-red-500 mt-1.5 font-medium">
+                            <i class="fa-solid fa-circle-exclamation mr-1"></i> กรุณากรอกแท็กรับของก่อนยืนยันออเดอร์นะคะ
+                        </p>
+                    </div>
+
+                    <!-- Order Items Compact List -->
+                    <div class="mx-3.5 mt-3 bg-white/95 rounded-2xl p-3.5 shadow-card border border-pink-100">
+                        <h3 class="font-cute text-sm text-pink-700 mb-2.5 flex items-center gap-1.5">
+                            <i class="fa-solid fa-basket-shopping text-pink-500"></i> รายการสินค้า
+                        </h3>
+                        <div id="s3-items-list" class="space-y-2 divide-y divide-pink-100/80">
+                            <!-- Rendered via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Compact Summary Totals -->
+                    <div class="mx-3.5 mt-3 bg-white/95 rounded-2xl p-3.5 shadow-card border border-pink-100">
+                        <div class="space-y-1.5 text-xs sm:text-sm border-b border-pink-100 pb-2.5">
+                            <div class="flex justify-between text-gray-600">
+                                <span><i class="fa-regular fa-file-lines text-pink-400 mr-1.5"></i>จำนวนรายการ</span>
+                                <span class="font-bold text-gray-800"><span id="s3-total-types">0</span> รายการ</span>
+                            </div>
+                            <div class="flex justify-between text-gray-600">
+                                <span><i class="fa-solid fa-box-open text-pink-400 mr-1.5"></i>จำนวนทั้งหมด</span>
+                                <span class="font-bold text-gray-800"><span id="s3-total-pieces">0</span> ชิ้น</span>
+                            </div>
+                        </div>
+                        <div class="pt-2.5 flex items-center justify-between">
+                            <span class="font-cute text-base text-gray-800">ยอดรวม</span>
+                            <span class="font-cute text-xl font-bold text-pink-600"><span id="s3-total-price">0</span>฿</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Order Button -->
+                <div class="shrink-0 bg-white/95 backdrop-blur-md border-t-2 border-pink-200 px-4 py-3.5 rounded-t-3xl">
+                    <button onclick="submitOrder()" class="w-full btn-pink-gradient text-white font-cute text-base py-3 rounded-full flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>ยืนยันออเดอร์</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ======================================================================= -->
+            <!-- SCREEN 4: หน้ายืนยันสำเร็จ & คัดลอกข้อความ (Order Success)               -->
+            <!-- ======================================================================= -->
+            <section id="screen-4" class="hidden flex-1 flex flex-col justify-between overflow-hidden">
+                <div class="flex-1 overflow-y-auto p-4 text-center">
+                    <!-- Cute Sheep Mascot SVG -->
+                    <div class="mt-2 mb-1 flex justify-center">
+                        <div class="w-16 h-16 rounded-full bg-pink-100/80 border-2 border-white shadow-sm flex items-center justify-center text-3xl animate-float">
+                            🐑
+                        </div>
+                    </div>
+
+                    <!-- Success Heading -->
+                    <div class="flex items-center justify-center gap-2 mt-1">
+                        <span class="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-xs shadow">
+                            <i class="fa-solid fa-check"></i>
+                        </span>
+                        <h2 class="font-cute text-2xl text-pink-600">สั่งซื้อสำเร็จ!</h2>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-0.5">สร้างคำสั่งซื้อเรียบร้อยแล้ว</p>
+
+                    <!-- Order Code Dashed Box -->
+                    <div class="mt-3.5 bg-white/95 rounded-2xl p-4 border-2 border-dashed border-pink-300 shadow-card">
+                        <p class="text-xs font-semibold text-gray-600">โค้ดคำสั่งซื้อของคุณ</p>
+                        <div id="s4-order-code" class="font-cute text-3xl sm:text-4xl font-bold text-pink-600 tracking-wider my-1">
+                            T41928
+                        </div>
+                    </div>
+
+                    <!-- Message Box for Seller -->
+                    <div class="mt-3.5 bg-white/95 rounded-2xl p-3.5 border border-pink-200 shadow-card text-left">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-cute text-xs sm:text-sm text-pink-700 flex items-center gap-1.5">
+                                <i class="fa-solid fa-tag text-pink-500"></i> ข้อความสำหรับส่งให้ผู้ขาย
+                            </span>
+                        </div>
+                        <div class="relative bg-pink-50/70 rounded-xl p-3 border border-pink-100 text-xs text-gray-700 leading-relaxed pr-11">
+                            <p id="s4-seller-message" class="whitespace-pre-line select-all">ลิงก์สินค้าที่สั่ง =
+https://lilithstore.demo/order/T41928
+
+โค้ดสินค้าของท่านคือ T41928
+กรุณาส่งข้อความนี้ไปยังผู้ขาย
+เพื่อรับสินค้า ขอบคุณค่ะ ♡</p>
+                            <button onclick="copySellerMessage()" title="คัดลอกข้อความทั้งหมด" class="absolute top-3 right-3 w-8 h-8 rounded-lg bg-white text-pink-600 border border-pink-200 shadow-sm hover:bg-pink-50 flex items-center justify-center transition">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Action Buttons -->
+                <div class="shrink-0 bg-white/95 backdrop-blur-md border-t-2 border-pink-200 px-4 py-3 rounded-t-3xl space-y-2">
+                    <button onclick="navigateToStep(5)" class="w-full btn-pink-gradient text-white font-cute text-sm sm:text-base py-2.5 rounded-full flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-file-invoice"></i>
+                        <span>ดูรายละเอียดคำสั่งซื้อ</span>
+                    </button>
+                    <button onclick="resetAndGoHome()" class="w-full bg-white hover:bg-pink-50 text-pink-600 border-2 border-pink-200 font-cute text-sm sm:text-base py-2 rounded-full flex items-center justify-center gap-2 transition shadow-sm">
+                        <i class="fa-solid fa-house"></i>
+                        <span>กลับหน้าหลัก</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- ======================================================================= -->
+            <!-- SCREEN 5: หน้ารายละเอียดคำสั่งซื้อ (Interactive Item Delivery Tap)      -->
+            <!-- ======================================================================= -->
+            <section id="screen-5" class="hidden flex-1 flex flex-col justify-between overflow-hidden">
+                <!-- Top Header -->
+                <div class="shrink-0 px-4 py-3 flex items-center justify-between border-b border-pink-200/70 bg-white/60">
+                    <button onclick="navigateToStep(4)" class="w-8 h-8 rounded-full bg-white text-pink-600 flex items-center justify-center shadow-sm hover:bg-pink-50">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <h2 class="font-cute text-lg text-pink-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-store text-pink-500"></i>
+                        <span>รายละเอียดคำสั่งซื้อ</span>
+                    </h2>
+                    <div class="w-8"></div>
+                </div>
+
+                <!-- Scrollable Content -->
+                <div class="flex-1 overflow-y-auto p-3.5 space-y-3">
+                    <!-- Order Header Card -->
+                    <div class="bg-white/95 rounded-2xl p-3.5 shadow-card border border-pink-100">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <div class="font-cute text-lg font-bold text-pink-600">
+                                    โค้ด: <span id="s5-code">T41928</span>
+                                </div>
+                                <div id="s5-datetime" class="text-xs text-gray-500 mt-0.5">
+                                    10/11/2569 13:16:22
+                                </div>
+                            </div>
+                            <div class="bg-pink-50 border border-pink-200 text-pink-600 font-cute font-bold px-3 py-1 rounded-full text-base">
+                                <span id="s5-top-price">40</span>฿
+                            </div>
+                        </div>
+
+                        <!-- Recipient Farm Tag Box -->
+                        <div class="mt-3 bg-pink-50/70 rounded-xl px-3 py-2 border border-pink-100 flex items-center justify-between">
+                            <div class="text-xs sm:text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+                                <i class="fa-solid fa-tag text-pink-500"></i>
+                                <span>แท็กรับของ : <strong id="s5-tag" class="text-pink-700">L123</strong></span>
+                            </div>
+                            <button onclick="copyCurrentTag()" class="text-gray-500 hover:text-pink-600 p-1 transition" title="คัดลอกแท็กรับของ">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+
+                        <!-- Read-Only Order Progress Bar for Customer -->
+                        <div class="mt-3 pt-2.5 border-t border-pink-100 flex items-center justify-between">
+                            <span class="text-xs text-gray-500 font-medium">ความคืบหน้าออเดอร์:</span>
+                            <div id="s5-customer-progress-badge">
+                                <!-- Rendered via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Read-only Grid of Ordered Product Thumbnails for Customer -->
+                    <div class="bg-white/95 rounded-2xl p-3.5 shadow-card border border-pink-100">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-cute text-xs sm:text-sm text-gray-800">
+                                รายการสินค้า (<span id="s5-grid-count">3</span> รายการ)
+                            </h3>
+                            <span class="text-[10px] font-medium text-gray-500 bg-pink-50/80 px-2 py-0.5 rounded-full border border-pink-100">
+                                ความคืบหน้ารายชิ้น
+                            </span>
+                        </div>
+
+                        <div id="s5-items-grid" class="grid grid-cols-3 gap-2">
+                            <!-- Rendered via JS (Read-only for customers) -->
+                        </div>
+                    </div>
+
+                    <!-- Delivery Item Status Summary Box (Sent / Waiting / Out of Stock counts & item names) -->
+                    <div class="bg-white/95 rounded-2xl p-3.5 shadow-card border border-pink-100">
+                        <h3 class="font-cute text-xs sm:text-sm text-pink-700 mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-clipboard-check text-pink-500"></i> สรุปความคืบหน้าการจัดส่ง
+                        </h3>
+                        <div id="s5-delivery-item-summary" class="space-y-2 text-xs">
+                            <!-- Rendered dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Summary Card -->
+                    <div class="bg-white/95 rounded-2xl p-3.5 shadow-card border border-pink-100">
+                        <div class="space-y-1.5 text-xs sm:text-sm border-b border-pink-100 pb-2.5">
+                            <div class="flex justify-between text-gray-600">
+                                <span><i class="fa-regular fa-file-lines text-pink-400 mr-1.5"></i>จำนวนรายการ</span>
+                                <span class="font-bold text-gray-800"><span id="s5-total-types">3</span> รายการ</span>
+                            </div>
+                            <div class="flex justify-between text-gray-600">
+                                <span><i class="fa-solid fa-box-open text-pink-400 mr-1.5"></i>จำนวนสินค้าทั้งหมด</span>
+                                <span class="font-bold text-gray-800"><span id="s5-total-pieces">40</span> ชิ้น</span>
+                            </div>
+                        </div>
+                        <div class="pt-2.5 flex items-center justify-between">
+                            <span class="font-cute text-sm sm:text-base text-gray-800">ยอดรวมทั้งสิ้น</span>
+                            <span class="font-cute text-xl font-bold text-pink-600"><span id="s5-total-price">40</span>฿</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Action Button -->
+                <div class="shrink-0 bg-white/95 backdrop-blur-md border-t-2 border-pink-200 px-4 py-3.5 rounded-t-3xl">
+                    <button onclick="resetAndGoHome()" class="w-full btn-pink-gradient text-white font-cute text-sm sm:text-base py-2.5 rounded-full flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-house"></i>
+                        <span>กลับหน้าหลัก</span>
+                    </button>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- ================= IMAGE LIGHTBOX MODAL ================= -->
+    <div id="image-lightbox-modal" onclick="closeImageLightbox()" class="fixed inset-0 z-50 hidden bg-pink-950/75 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="relative max-w-lg w-full bg-white p-2 rounded-3xl shadow-2xl border-2 border-pink-200" onclick="event.stopPropagation()">
+            <button onclick="closeImageLightbox()" class="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-pink-600 text-white shadow-md flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <img id="lightbox-img" src="" alt="Preview" class="w-full max-h-[80vh] object-contain rounded-2xl">
+        </div>
+    </div>
+
+    <!-- ================= BACKOFFICE / ADMIN SYSTEM VIEW (ระบบหลังร้าน) ================= -->
+    <section id="admin-app-view" class="hidden max-w-5xl mx-auto px-4 mt-6">
+        <!-- Admin Header Banner -->
+        <div class="bg-white rounded-3xl p-5 shadow-cute border-2 border-pink-200 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <img src="https://i.postimg.cc/8Cf0FcHR/att-bwu68m-O-KTYPe-Vol1Aj-RTUn-Co-Qz2741g-L2Qi7xn-Gh38.jpg" 
+                     alt="Lilith store" 
+                     class="w-16 h-16 rounded-2xl object-cover border-2 border-pink-300 shadow-sm"
+                     onerror="this.src='https://placehold.co/100x100/FFD1E1/C41954?text=Lilith'">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="font-cute text-xl sm:text-2xl text-pink-600">ระบบจัดการหลังร้าน Lilith store</h2>
+                        <span class="bg-pink-100 text-pink-700 text-xs font-bold px-2.5 py-0.5 rounded-full border border-pink-200">Demo Mode</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
+                        จัดการรายการคำสั่งซื้อ ตรวจสอบแท็กรับของ เปลี่ยนสถานะ และตั้งค่ารายการสินค้า
+                    </p>
+                </div>
+            </div>
+            <button onclick="switchMainMode('customer')" class="bg-pink-50 hover:bg-pink-100 text-pink-600 border border-pink-300 font-cute text-sm px-4 py-2 rounded-full transition flex items-center gap-2 self-end sm:self-auto">
+                <i class="fa-solid fa-arrow-left"></i> กลับไปหน้าร้านค้า
+            </button>
+        </div>
+
+        <!-- Separation of Demo Data vs Session Data Notice -->
+        <div class="bg-amber-50/90 border-2 border-amber-200 rounded-2xl p-3.5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs sm:text-sm text-amber-900">
+            <div class="flex items-start sm:items-center gap-2.5">
+                <i class="fa-solid fa-circle-info text-amber-500 text-lg mt-0.5 sm:mt-0"></i>
+                <div>
+                    <strong>การแยกข้อมูลตัวอย่าง (Demo) และข้อมูลที่กดทดสอบ:</strong>
+                    ออเดอร์ที่มีป้าย <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-bold text-xs">ข้อมูลตัวอย่าง</span> คือข้อมูลตั้งต้นตามภาพต้นแบบ ส่วนออเดอร์ที่คุณกดสั่งซื้อเองจะมีป้าย <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded font-bold text-xs">สร้างใหม่ในเซสชันนี้</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <select id="admin-data-filter" onchange="renderAdminOrders()" class="bg-white border border-amber-300 rounded-xl px-3 py-1.5 text-xs font-semibold text-gray-700 focus:outline-none">
+                    <option value="all">แสดงทั้งหมด (ตัวอย่าง + ทดสอบจริง)</option>
+                    <option value="session">เฉพาะออเดอร์ที่กดสั่งใหม่</option>
+                    <option value="demo">เฉพาะออเดอร์ตัวอย่าง (Demo)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Admin Tabs (Orders vs Products) -->
+        <div class="flex items-center gap-2 mb-4">
+            <button onclick="switchAdminTab('orders')" id="admin-tab-orders" class="font-cute text-sm sm:text-base px-5 py-2.5 rounded-2xl bg-pink-500 text-white shadow-sm transition flex items-center gap-2">
+                <i class="fa-solid fa-clipboard-list"></i> รายการคำสั่งซื้อ (<span id="admin-total-orders-count">2</span>)
+            </button>
+            <button onclick="switchAdminTab('products')" id="admin-tab-products" class="font-cute text-sm sm:text-base px-5 py-2.5 rounded-2xl bg-white text-gray-600 hover:bg-pink-50 border border-pink-200 transition flex items-center gap-2">
+                <i class="fa-solid fa-boxes-stacked"></i> จัดการสินค้าในร้าน (<span id="admin-total-products-count">10</span>)
+            </button>
+        </div>
+
+        <!-- ADMIN TAB 1: ORDERS LIST -->
+        <div id="admin-panel-orders" class="space-y-4">
+            <!-- Stats Row -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-white p-4 rounded-2xl border border-pink-100 shadow-card">
+                    <p class="text-xs text-gray-500">คำสั่งซื้อทั้งหมด</p>
+                    <p id="stat-all" class="font-cute text-2xl text-pink-600 mt-1">2</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-pink-100 shadow-card">
+                    <p class="text-xs text-gray-500">ยังไม่ส่ง</p>
+                    <p id="stat-pending" class="font-cute text-2xl text-rose-500 mt-1">1</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-pink-100 shadow-card">
+                    <p class="text-xs text-gray-500">กำลังเตรียม</p>
+                    <p id="stat-preparing" class="font-cute text-2xl text-amber-500 mt-1">1</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-pink-100 shadow-card">
+                    <p class="text-xs text-gray-500">ยอดรวมทั้งหมด</p>
+                    <p id="stat-revenue" class="font-cute text-2xl text-green-600 mt-1">85฿</p>
+                </div>
+            </div>
+
+            <!-- Orders Table / Cards -->
+            <div id="admin-orders-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Rendered via JS -->
+            </div>
+        </div>
+
+        <!-- ADMIN TAB 2: PRODUCTS MANAGEMENT -->
+        <div id="admin-panel-products" class="hidden bg-white rounded-3xl p-5 shadow-card border border-pink-100">
+            <div class="pb-4 border-b border-pink-100 mb-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                    <div>
+                        <h3 class="font-cute text-lg text-pink-700">เพิ่ม / แก้ไขไอเทมและเรทราคา</h3>
+                        <p class="text-xs text-gray-500">รองรับทั้งอีโมจิหรือลิงก์รูปภาพ และตั้งราคาได้ 2 แบบ (ราคาเดี่ยว หรือ ราคาต่อหน่วยหลายเรท เช่น 10/2, 50/8, 100/15)</p>
+                    </div>
+                    <button onclick="resetProductFormAdmin()" id="cancel-edit-prod-btn" class="hidden text-xs font-cute text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-xl">
+                        ยกเลิกการแก้ไข
+                    </button>
+                </div>
+
+                <!-- Add / Edit Product Form -->
+                <div class="bg-pink-50/60 border border-pink-200 rounded-2xl p-3.5 space-y-3">
+                    <input type="hidden" id="edit-prod-id" value="">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-pink-700 mb-1">ไอคอนอีโมจิ หรือ วางลิงก์รูปภาพ</label>
+                            <input type="text" id="new-prod-icon" placeholder="เช่น 🧁 หรือ https://..." class="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-pink-200 bg-white focus:outline-none focus:border-pink-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-pink-700 mb-1">ชื่อสินค้า / ชื่อแพ็กเกจ</label>
+                            <input type="text" id="new-prod-name" placeholder="เช่น คุกกี้ หรือ อัพโรงนา คละ 89ชิ้น" class="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-pink-200 bg-white focus:outline-none focus:border-pink-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-pink-700 mb-1">หมวดหมู่สินค้า</label>
+                            <select id="new-prod-cat" onchange="handleCategoryDefaultRateHint()" class="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-pink-200 bg-white focus:outline-none focus:border-pink-500">
+                                <option value="snacks">ขนม</option>
+                                <option value="low_mat">วัตถุดิบเวลต่ำ</option>
+                                <option value="high_mat">วัตถุดิบเวลสูง</option>
+                                <option value="veg_fruit">ผัก ผลไม้</option>
+                                <option value="tools">อุปกรณ์ทำลายล้าง</option>
+                                <option value="upgrade">ของอัพ</option>
+                                <option value="coins">วนเหรียญ</option>
+                                <option value="vouchers">บัตรกำนัล</option>
+                                <option value="truck_bills">ส่งบิลรถ</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-pink-700 mb-1">รูปแบบราคา</label>
+                            <select id="new-prod-price-type" onchange="togglePriceInputModeAdmin()" class="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-pink-200 bg-white focus:outline-none focus:border-pink-500">
+                                <option value="tiered">ราคาต่อหน่วย (เช่น 10ชิ้น 2฿, 50ชิ้น 8฿)</option>
+                                <option value="single">ราคาเดี่ยว (ราคาปกติต่อชิ้น / ต่อเซ็ต)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-end">
+                        <!-- Single Price Input -->
+                        <div id="admin-single-price-box" class="hidden sm:col-span-2">
+                            <label class="block text-[11px] font-semibold text-pink-700 mb-1">ราคาเดี่ยว (บาท ต่อ 1 ชิ้น/ช่อง)</label>
+                            <input type="number" id="new-prod-price" placeholder="เช่น 10" value="10" min="1" class="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-pink-200 bg-white focus:outline-none focus:border-pink-500">
+                        </div>
+
+                        <!-- Tiered Price Input -->
+                        <div id="admin-tiered-price-box" class="sm:col-span-2">
+                            <label class="block text-[11px] font-semibold text-pink-700 mb-1">
+                                เรทราคาต่อหน่วย (คั่นด้วยเว้นวรรค เช่น <code class="bg-white px-1 rounded text-pink-600">10/2 50/8 100/15</code> คือ 10ชิ้น 2฿, 50ชิ้น 8฿, 100ชิ้น 15฿)
+                            </label>
+                            <input type="text" id="new-prod-tiers" placeholder="เช่น 10/2 50/8 100/15" value="10/2 50/8 100/15" class="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-pink-200 bg-white focus:outline-none focus:border-pink-500">
+                        </div>
+
+                        <button onclick="saveProductAdmin()" id="save-prod-btn" class="btn-pink-gradient text-white font-cute text-xs sm:text-sm px-4 py-2.5 rounded-xl w-full flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> <span id="save-prod-btn-text">บันทึกสินค้า</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Category Rate Banner Bulk Editor -->
+                <div class="mt-3 bg-white border border-pink-100 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div class="flex items-center gap-2 text-gray-600">
+                        <i class="fa-solid fa-sliders text-pink-500"></i>
+                        <span>ปรับเรททั้งหมวดหมู่พร้อมกัน:</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="bulk-cat-select" onchange="loadBulkCatRateInput()" class="px-2.5 py-1.5 rounded-xl border border-pink-200 bg-pink-50/40 text-xs font-medium">
+                            <!-- Populated via JS -->
+                        </select>
+                        <input type="text" id="bulk-cat-rate-input" placeholder="เช่น 10/2 50/8 100/15 หรือ 89/10" class="px-3 py-1.5 rounded-xl border border-pink-200 text-xs w-44">
+                        <button onclick="applyBulkCategoryRate()" class="bg-pink-500 hover:bg-pink-600 text-white font-cute px-3 py-1.5 rounded-xl transition">
+                            อัปเดตเรทหมวดนี้
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="admin-products-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                <!-- Rendered via JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= ORDER LOOKUP MODAL ================= -->
+    <div id="lookup-modal" class="fixed inset-0 z-50 hidden bg-pink-950/40 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl border-2 border-pink-200 animate-float" style="animation: none;">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-cute text-lg text-pink-600 flex items-center gap-2">
+                    <i class="fa-solid fa-magnifying-glass"></i> ค้นหาโค้ดคำสั่งซื้อ
+                </h3>
+                <button onclick="closeOrderLookupModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-xs text-gray-500 mb-3">
+                จำลองการเปิดลิงก์ของผู้ขาย กรอกโค้ดคำสั่งซื้อ เช่น <strong class="text-pink-600 cursor-pointer underline" onclick="document.getElementById('lookup-code-input').value='T41928'">T41928</strong> เพื่อดูรายละเอียด
+            </p>
+            <input type="text" id="lookup-code-input" placeholder="กรอกโค้ด เช่น T41928" 
+                   class="w-full px-4 py-2.5 rounded-xl border-2 border-pink-200 focus:border-pink-500 focus:outline-none text-sm font-bold uppercase text-center tracking-wider mb-3">
+            <div class="flex gap-2">
+                <button onclick="closeOrderLookupModal()" class="flex-1 py-2 rounded-full border border-pink-200 text-gray-600 text-sm font-cute">ยกเลิก</button>
+                <button onclick="performOrderLookup()" class="flex-1 py-2 rounded-full btn-pink-gradient text-white text-sm font-cute">ดูออเดอร์</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= VARIANT / OPTION PICKER MODAL (สุ่ม / คละ / เจาะจง) ================= -->
+    <div id="variant-picker-modal" class="fixed inset-0 z-50 hidden bg-pink-950/40 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeVariantPickerModal()">
+        <div class="bg-white rounded-3xl max-w-xs w-full p-4 shadow-2xl border-2 border-pink-200" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between mb-2">
+                <h3 id="variant-modal-title" class="font-cute text-base text-pink-600">เลือกรูปแบบสินค้า</h3>
+                <button onclick="closeVariantPickerModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p class="text-[11px] text-gray-500 mb-3">กดเลือกรูปแบบ (สุ่ม / คละ / เจาะจง) ที่ต้องการได้เลยค่ะ</p>
+            <div id="variant-modal-options" class="space-y-2">
+                <!-- Populated via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TOAST NOTIFICATION ================= -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 pointer-events-none flex flex-col gap-2"></div>
+
+    <!-- ================= JAVASCRIPT APPLICATION LOGIC ================= -->
+    <script>
+        // -----------------------------------------------------------------
+        // 1. CATEGORIES & INITIAL PRODUCTS DATA (Adjustable Rates & 2 Price Types)
+        // -----------------------------------------------------------------
+        let CATEGORIES = [
+            { id: 'all', name: 'ทั้งหมด', icon: '⊞', rateNote: '' },
+            { id: 'snacks', name: 'ขนม', icon: '🧁', rateNote: '10/2 50/8 100/15' },
+            { id: 'low_mat', name: 'วัตถุดิบเวลต่ำ', icon: '🌾', rateNote: '10/1 100/8' },
+            { id: 'high_mat', name: 'วัตถุดิบเวลสูง', icon: '🧀', rateNote: '10/2 50/8 100/12' },
+            { id: 'veg_fruit', name: 'ผัก ผลไม้', icon: '🍓', rateNote: '10/1 100/6' },
+            { id: 'tools', name: 'อุปกรณ์ทำลายล้าง', icon: '🧨', rateNote: '10/1 100/8' },
+            { id: 'upgrade', name: 'ของอัพ', icon: '🛠️', rateNote: '89/10 89/15' },
+            { id: 'coins', name: 'วนเหรียญ', icon: '🪙', rateNote: '1ล้าน 20฿' },
+            { id: 'vouchers', name: 'บัตรกำนัล', icon: '🎟️', rateNote: 'สุ่มสี / เลือกสี' },
+            { id: 'truck_bills', name: 'ส่งบิลรถ', icon: '🚚', rateNote: 'เลือกจำนวนบิล' }
+        ];
+
+        // Custom SVG illustrations
+        const CUSTOM_SVGS = {
+            plank: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M6 28L34 12L44 18L16 34L6 28Z" fill="#D97706" stroke="#78350F" stroke-width="2"/><path d="M6 28V33L16 39L44 23V18" fill="#B45309" stroke="#78350F" stroke-width="2"/><path d="M14 24L32 14" stroke="#FDE68A" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+            stone: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M10 34L14 18L28 14L40 22L38 36L18 38L10 34Z" fill="#9CA3AF" stroke="#4B5563" stroke-width="2" stroke-linejoin="round"/><path d="M14 18L26 24L38 36" stroke="#6B7280" stroke-width="1.5"/><path d="M28 14L26 24L10 34" stroke="#D1D5DB" stroke-width="1.5"/></svg>`,
+            wheat: `<svg viewBox="0 0 48 48" class="w-9 h-9"><path d="M12 38L36 14" stroke="#CA8A04" stroke-width="3" stroke-linecap="round"/><ellipse cx="32" cy="16" rx="3" ry="6" transform="rotate(45 32 16)" fill="#FACC15" stroke="#CA8A04" stroke-width="1.5"/><ellipse cx="26" cy="22" rx="3" ry="6" transform="rotate(45 26 22)" fill="#FACC15" stroke="#CA8A04" stroke-width="1.5"/><ellipse cx="20" cy="28" rx="3" ry="6" transform="rotate(45 20 28)" fill="#FACC15" stroke="#CA8A04" stroke-width="1.5"/></svg>`,
+            corn: `<svg viewBox="0 0 48 48" class="w-9 h-9"><ellipse cx="25" cy="24" rx="7" ry="13" transform="rotate(30 25 24)" fill="#FACC15" stroke="#CA8A04" stroke-width="2"/><path d="M14 34C12 26 16 20 22 22C20 28 24 34 14 34Z" fill="#22C55E" stroke="#15803D" stroke-width="1.5"/><path d="M18 36C24 36 30 30 28 24" fill="#22C55E" stroke="#15803D" stroke-width="1.5"/></svg>`
+        };
+
+        // Parse string like "10/2 50/8 100/15" into sorted tier array [{qty:10, price:2}, ...]
+        function parseTiersString(str) {
+            if (!str || typeof str !== 'string') return [];
+            const parts = str.trim().split(/[\s,]+/);
+            const tiers = [];
+            parts.forEach(part => {
+                const [qStr, pStr] = part.split('/');
+                const qty = parseInt(qStr, 10);
+                const price = parseFloat(pStr);
+                if (!isNaN(qty) && qty > 0 && !isNaN(price) && price >= 0) {
+                    tiers.push({ qty, price });
+                }
+            });
+            return tiers.sort((a, b) => a.qty - b.qty);
+        }
+
+        function formatTiersToString(tiers) {
+            if (!tiers || !tiers.length) return '';
+            return tiers.map(t => `${t.qty}/${t.price}`).join(' ');
+        }
+
+        // Calculate price for a product based on quantity and pricing mode ('single' vs 'tiered')
+        function calculateProductLinePrice(prod, qty) {
+            if (!qty || qty <= 0) return 0;
+            if (prod.priceType === 'tiered' && prod.tiers && prod.tiers.length > 0) {
+                const sortedDesc = [...prod.tiers].sort((a, b) => b.qty - a.qty);
+                const lowestTier = prod.tiers[0];
+                let remaining = qty;
+                let total = 0;
+
+                for (const t of sortedDesc) {
+                    if (remaining >= t.qty) {
+                        const count = Math.floor(remaining / t.qty);
+                        total += count * t.price;
+                        remaining = remaining % t.qty;
+                    }
+                }
+                if (remaining > 0) {
+                    const unitFallback = lowestTier.price / lowestTier.qty;
+                    total += Math.ceil(remaining * unitFallback * 100) / 100;
+                }
+                return Math.round(total * 100) / 100;
+            }
+            return Math.round(qty * (prod.price || 1) * 100) / 100;
+        }
+
+        function getProductPriceLabel(prod) {
+            if (prod.priceType === 'tiered' && prod.tiers && prod.tiers.length > 0) {
+                const first = prod.tiers[0];
+                return `${first.qty}ชิ้น ${first.price}฿`;
+            }
+            return `${prod.price}฿`;
+        }
+
+        function getDefaultStepQty(prod) {
+            if (prod.priceType === 'tiered' && prod.tiers && prod.tiers.length > 0) {
+                return prod.tiers[0].qty;
+            }
+            return 1;
+        }
+
+        let products = [
+            // ขนม (10/2 50/8 100/15)
+            { id: 'p_snack1', name: 'คัพเค้กชมพู', category: 'snacks', priceType: 'tiered', tiers: parseTiersString('10/2 50/8 100/15'), price: 2, emoji: '🧁' },
+            { id: 'p_snack2', name: 'แพนเค้กน้ำผึ้ง', category: 'snacks', priceType: 'tiered', tiers: parseTiersString('10/2 50/8 100/15'), price: 2, emoji: '🥞' },
+            { id: 'p_snack3', name: 'คุกกี้เนยสด', category: 'snacks', priceType: 'tiered', tiers: parseTiersString('10/2 50/8 100/15'), price: 2, emoji: '🍪' },
+
+            // วัตถุดิบเวลต่ำ (10/1 100/8)
+            { id: 'p_low1', name: 'น้ำตาลทราย', category: 'low_mat', priceType: 'tiered', tiers: parseTiersString('10/1 100/8'), price: 1, emoji: '🧂' },
+            { id: 'p_low2', name: 'ครีมนมสด', category: 'low_mat', priceType: 'tiered', tiers: parseTiersString('10/1 100/8'), price: 1, emoji: '🥛' },
+            { id: 'p_low3', name: 'ขนมปังโฮมเมด', category: 'low_mat', priceType: 'tiered', tiers: parseTiersString('10/1 100/8'), price: 1, emoji: '🍞' },
+
+            // วัตถุดิบเวลสูง (10/2 50/8 100/12)
+            { id: 'p_high1', name: 'ชีสก้อนทอง', category: 'high_mat', priceType: 'tiered', tiers: parseTiersString('10/2 50/8 100/12'), price: 2, emoji: '🧀' },
+            { id: 'p_high2', name: 'น้ำผึ้งแท้', category: 'high_mat', priceType: 'tiered', tiers: parseTiersString('10/2 50/8 100/12'), price: 2, emoji: '🍯' },
+            { id: 'p_high3', name: 'มายองเนส', category: 'high_mat', priceType: 'tiered', tiers: parseTiersString('10/2 50/8 100/12'), price: 2, emoji: '🫙' },
+
+            // ผัก ผลไม้ (10/1 100/6)
+            { id: 'p5', name: 'ข้าวสาลี', category: 'veg_fruit', priceType: 'tiered', tiers: parseTiersString('10/1 100/6'), price: 1, svgKey: 'wheat', emoji: '🌾' },
+            { id: 'p6', name: 'ข้าวโพด', category: 'veg_fruit', priceType: 'tiered', tiers: parseTiersString('10/1 100/6'), price: 1, svgKey: 'corn', emoji: '🌽' },
+            { id: 'p_veg3', name: 'สตรอว์เบอร์รี', category: 'veg_fruit', priceType: 'tiered', tiers: parseTiersString('10/1 100/6'), price: 1, emoji: '🍓' },
+
+            // อุปกรณ์ทำลายล้าง (10/1 100/8)
+            { id: 'p_tool1', name: 'ระเบิด TNT', category: 'tools', priceType: 'tiered', tiers: parseTiersString('10/1 100/8'), price: 1, emoji: '🧨' },
+            { id: 'p_tool2', name: 'เลื่อยตัดไม้', category: 'tools', priceType: 'tiered', tiers: parseTiersString('10/1 100/8'), price: 1, emoji: '🪚' },
+            { id: 'p_tool3', name: 'ขวานทอง', category: 'tools', priceType: 'tiered', tiers: parseTiersString('10/1 100/8'), price: 1, emoji: '🪓' },
+
+            // ของอัพ (มีให้เลือก คละ / เลือก-ล้วน)
+            { id: 'p1', name: 'อัพโรงนา (89ชิ้น)', category: 'upgrade', priceType: 'single', price: 10, svgKey: 'plank', emoji: '🪵', variants: [{ label: 'คละ', price: 10 }, { label: 'เลือก/ล้วน', price: 15 }] },
+            { id: 'p_up2', name: 'อัพยุ้งฉาง (89ชิ้น)', category: 'upgrade', priceType: 'single', price: 10, emoji: '🔩', variants: [{ label: 'คละ', price: 10 }, { label: 'เลือก/ล้วน', price: 15 }] },
+            { id: 'p_up3', name: 'ขยายพื้นที่ (89ชิ้น)', category: 'upgrade', priceType: 'single', price: 10, emoji: '🚩', variants: [{ label: 'คละ', price: 10 }, { label: 'เลือก/ล้วน', price: 15 }] },
+            { id: 'p_up4', name: 'อัพเมือง (89ชิ้น)', category: 'upgrade', priceType: 'single', price: 10, emoji: '🔨', variants: [{ label: 'คละ', price: 10 }, { label: 'เลือก/ล้วน', price: 15 }] },
+
+            // วนเหรียญ (มีให้เลือก คละ / เจาะจง)
+            { id: 'p_coin1', name: 'วนเหรียญ', category: 'coins', priceType: 'single', price: 10, emoji: '🪙', variants: [{ label: 'คละของ 89ชิ้น', price: 10 }, { label: 'เจาะจง 1ล้าน', price: 20 }] },
+
+            // บัตรกำนัล (มีให้เลือก สุ่มสี / เลือกสี)
+            { id: 'p_vouch1', name: 'บัตรกำนัล (1 เซ็ต)', category: 'vouchers', priceType: 'single', price: 10, emoji: '🎟️', variants: [{ label: 'สุ่มสี', price: 10 }, { label: 'เลือกสี', price: 15 }] },
+
+            // ส่งบิลรถ (เรทเดียว ทำหลายช่อง)
+            { id: 'p_truck1', name: 'ส่งบิลรถ เหมา 10 บิล', category: 'truck_bills', priceType: 'single', price: 10, emoji: '🚚' },
+            { id: 'p_truck2', name: 'ส่งบิลรถ เหมา 20 บิล', category: 'truck_bills', priceType: 'single', price: 20, emoji: '🚛' },
+            { id: 'p_truck3', name: 'ส่งบิลรถ เหมา 50 บิล', category: 'truck_bills', priceType: 'single', price: 45, emoji: '📦' }
+        ];
+
+        // Initial Cart State (Starts empty so cards are clean without prices until tapped)
+        let cart = {};
+        // Tracks chosen variant per product id: { [prodId]: { label: 'คละ', price: 10 } }
+        let selectedVariants = {};
+
+        let activeCategory = 'all';
+        let collapsedSections = {}; // Tracks accordion collapse state
+        let currentStep = 1;
+
+        // Pre-loaded Demo Orders (Strictly marked as isDemo: true)
+        let orders = [
+            {
+                code: 'T41928',
+                tag: 'L123',
+                createdAt: '10/11/2569 13:16:22',
+                status: 'pending',
+                isDemo: true,
+                items: [
+                    { id: 'p1', name: 'อัพโรงนา คละ 89ชิ้น', price: 10, qty: 1, svgKey: 'plank', emoji: '🪵', itemState: 0 },
+                    { id: 'p_coin1', name: 'วนเหรียญ 1 ล้าน (เจาะจง)', price: 20, qty: 1, emoji: '🪙', itemState: 0 },
+                    { id: 'p5', name: 'ข้าวสาลี', price: 1, qty: 100, svgKey: 'wheat', emoji: '🌾', itemState: 0 }
+                ],
+                totalTypes: 3,
+                totalPieces: 102,
+                totalPrice: 36
+            },
+            {
+                code: 'T39810',
+                tag: 'LILITH99',
+                createdAt: '10/11/2569 12:05:10',
+                status: 'preparing',
+                isDemo: true,
+                items: [
+                    { id: 'p_snack1', name: 'คัพเค้กชมพู', price: 2, qty: 50, emoji: '🧁', itemState: 1 },
+                    { id: 'p_vouch2', name: 'บัตรกำนัล เลือกสี (1 เซ็ต)', price: 15, qty: 1, emoji: '🎫', itemState: 2 }
+                ],
+                totalTypes: 2,
+                totalPieces: 51,
+                totalPrice: 23
+            }
+        ];
+
+        let currentViewingOrderCode = 'T41928';
+
+        // Helper to render product visual (Image URL, SVG, or Emoji)
+        function getProductVisualHTML(item, sizeClass = 'w-10 h-10 text-2xl') {
+            if (item.imageUrl) {
+                return `<div class="${sizeClass} rounded-xl bg-pink-50/80 border border-pink-100 flex items-center justify-center shrink-0 shadow-inner overflow-hidden"><img src="${item.imageUrl}" alt="${item.name}" class="w-full h-full object-cover" onerror="this.outerHTML='<span>📦</span>'"></div>`;
+            }
+            if (item.svgKey && CUSTOM_SVGS[item.svgKey]) {
+                return `<div class="${sizeClass} rounded-xl bg-pink-50/80 border border-pink-100 flex items-center justify-center shrink-0 shadow-inner">${CUSTOM_SVGS[item.svgKey]}</div>`;
+            }
+            return `<div class="${sizeClass} rounded-xl bg-pink-50/80 border border-pink-100 flex items-center justify-center shrink-0 shadow-inner select-none">${item.emoji || '📦'}</div>`;
+        }
+
+        // Helper for Minimal Small Circular Icon on Screen 1
+        function getMinimalIconHTML(item) {
+            if (item.imageUrl) {
+                return `<div class="w-10 h-10 rounded-full bg-pink-50/90 border border-pink-100 flex items-center justify-center mx-auto shadow-sm overflow-hidden transition-transform group-hover:scale-105"><img src="${item.imageUrl}" alt="${item.name}" class="w-full h-full object-cover" onerror="this.outerHTML='<span>📦</span>'"></div>`;
+            }
+            if (item.svgKey && CUSTOM_SVGS[item.svgKey]) {
+                return `<div class="w-10 h-10 rounded-full bg-pink-50/90 border border-pink-100 flex items-center justify-center mx-auto shadow-sm transition-transform group-hover:scale-105"><div class="scale-75 flex items-center justify-center">${CUSTOM_SVGS[item.svgKey]}</div></div>`;
+            }
+            return `<div class="w-10 h-10 rounded-full bg-pink-50/90 border border-pink-100 flex items-center justify-center mx-auto text-xl select-none shadow-sm transition-transform group-hover:scale-105">${item.emoji || '📦'}</div>`;
+        }
+
+        function openImageLightbox(url) {
+            const modal = document.getElementById('image-lightbox-modal');
+            const img = document.getElementById('lightbox-img');
+            img.src = url;
+            modal.classList.remove('hidden');
+        }
+
+        function closeImageLightbox() {
+            document.getElementById('image-lightbox-modal').classList.add('hidden');
+        }
+
+        // -----------------------------------------------------------------
+        // 2. SCREEN 1 RENDERING (Tap Card to Select, No +/- Buttons on Screen 1)
+        // -----------------------------------------------------------------
+        function renderCategories() {
+            const container = document.getElementById('category-buttons-container');
+            container.innerHTML = CATEGORIES.map(cat => {
+                const isActive = activeCategory === cat.id;
+                const btnClasses = isActive
+                    ? 'bg-gradient-to-b from-pink-500 to-pink-600 text-white border-pink-600 shadow-md scale-[1.02]'
+                    : 'bg-white/90 text-gray-700 border-pink-100 hover:bg-white shadow-sm';
+                return `
+                    <button onclick="selectCategory('${cat.id}')" class="flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl border transition-all ${btnClasses}">
+                        <span class="text-base leading-none mb-1">${cat.icon}</span>
+                        <span class="font-cute text-[10px] leading-tight text-center line-clamp-1">${cat.name}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectCategory(catId) {
+            activeCategory = catId;
+            renderCategories();
+            renderProductSections();
+        }
+
+        function toggleSectionAccordion(catId) {
+            collapsedSections[catId] = !collapsedSections[catId];
+            renderProductSections();
+        }
+
+        // Tapping a product card on Screen 1:
+        // - If product has variants (สุ่ม / คละ / เจาะจง) and none chosen yet -> open variant picker modal
+        // - Otherwise increment quantity by 1 unit step (e.g., 1st tap = 10ชิ้น 2฿, 2nd tap = 20ชิ้น 4฿, 5th tap = 50ชิ้น 8฿)
+        function handleTapProductCardOnScreen1(prodId) {
+            const prod = products.find(p => p.id === prodId);
+            if (!prod) return;
+
+            if (prod.variants && prod.variants.length > 0) {
+                openVariantPickerModal(prodId);
+                return;
+            }
+
+            const step = getDefaultStepQty(prod);
+            cart[prodId] = (cart[prodId] || 0) + step;
+            updateAllSummaries();
+            renderProductSections();
+        }
+
+        function clearProductOnScreen1(event, prodId) {
+            event.stopPropagation();
+            delete cart[prodId];
+            delete selectedVariants[prodId];
+            updateAllSummaries();
+            renderProductSections();
+        }
+
+        function openVariantPickerModal(prodId) {
+            const prod = products.find(p => p.id === prodId);
+            if (!prod || !prod.variants) return;
+
+            document.getElementById('variant-modal-title').textContent = prod.name;
+            const currentVar = selectedVariants[prodId];
+            const currentQty = cart[prodId] || 0;
+
+            const container = document.getElementById('variant-modal-options');
+            container.innerHTML = prod.variants.map((v, idx) => {
+                const isSelected = currentVar && currentVar.label === v.label && currentQty > 0;
+                return `
+                    <button type="button" onclick="selectProductVariant('${prod.id}', ${idx})" class="w-full p-3 rounded-2xl border ${isSelected ? 'border-pink-500 bg-pink-50 text-pink-700 font-bold' : 'border-pink-100 bg-white hover:bg-pink-50/50 text-gray-800'} flex items-center justify-between transition">
+                        <span class="font-cute text-xs sm:text-sm">${v.label}</span>
+                        <span class="bg-pink-500 text-white font-cute text-xs px-2.5 py-0.5 rounded-full">${v.price}฿</span>
+                    </button>
+                `;
+            }).join('');
+
+            document.getElementById('variant-picker-modal').classList.remove('hidden');
+        }
+
+        function closeVariantPickerModal() {
+            document.getElementById('variant-picker-modal').classList.add('hidden');
+        }
+
+        function selectProductVariant(prodId, variantIndex) {
+            const prod = products.find(p => p.id === prodId);
+            if (!prod || !prod.variants || !prod.variants[variantIndex]) return;
+
+            const chosen = prod.variants[variantIndex];
+            const prev = selectedVariants[prodId];
+            if (prev && prev.label === chosen.label && cart[prodId] > 0) {
+                cart[prodId] += 1;
+            } else {
+                selectedVariants[prodId] = chosen;
+                cart[prodId] = 1;
+            }
+            prod.price = chosen.price;
+
+            closeVariantPickerModal();
+            updateAllSummaries();
+            renderProductSections();
+        }
+
+        function renderProductSections() {
+            const container = document.getElementById('product-sections-container');
+            const catsToRender = CATEGORIES.filter(c => c.id !== 'all' && (activeCategory === 'all' || activeCategory === c.id));
+
+            container.innerHTML = catsToRender.map(cat => {
+                const catProducts = products.filter(p => p.category === cat.id);
+                if (catProducts.length === 0) return '';
+                const isCollapsed = !!collapsedSections[cat.id];
+
+                // Build rate pills if category has rateNote
+                const rateBadgesHTML = cat.rateNote
+                    ? cat.rateNote.split(/\s+/).map(r => `<span class="bg-pink-500 text-white text-[9px] font-cute px-2 py-0.5 rounded-full shadow-sm">${r.includes('/') ? r.replace('/', 'ชิ้น ') + '฿' : r}</span>`).join('')
+                    : '';
+
+                return `
+                    <div class="bg-white/85 rounded-2xl shadow-card border border-pink-100 overflow-hidden">
+                        <!-- Section Header -->
+                        <button onclick="toggleSectionAccordion('${cat.id}')" class="w-full px-3 py-2 bg-gradient-to-r from-pink-100/80 to-pink-50/50 flex items-center justify-between text-left border-b border-pink-100">
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <span class="text-sm">${cat.icon}</span>
+                                <span class="font-cute text-xs sm:text-sm text-pink-700">${cat.name}</span>
+                                ${rateBadgesHTML}
+                            </div>
+                            <i class="fa-solid fa-chevron-${isCollapsed ? 'down' : 'up'} text-xs text-pink-500 shrink-0 ml-1"></i>
+                        </button>
+
+                        <!-- Section Items: Minimal Small Cards (Price hidden until tapped!) -->
+                        <div class="${isCollapsed ? 'hidden' : 'p-2 grid grid-cols-3 gap-2'}">
+                            ${catProducts.map((prod) => {
+                                const qty = cart[prod.id] || 0;
+                                const isSelected = qty > 0;
+                                const chosenVar = selectedVariants[prod.id];
+                                const linePrice = isSelected ? calculateProductLinePrice(prod, qty) : 0;
+
+                                let activeBadgeText = '';
+                                if (isSelected) {
+                                    if (chosenVar) {
+                                        activeBadgeText = `${chosenVar.label} ${qty > 1 ? '×' + qty + ' ' : ''}${linePrice}฿`;
+                                    } else {
+                                        activeBadgeText = `${qty}ชิ้น ${linePrice}฿`;
+                                    }
+                                }
+
+                                return `
+                                    <button type="button" onclick="handleTapProductCardOnScreen1('${prod.id}')" class="bg-white rounded-xl p-2 text-center relative flex flex-col items-center justify-between group transition-all border ${isSelected ? 'border-pink-500 ring-2 ring-pink-300/80 bg-pink-50/40' : 'border-pink-100 hover:border-pink-300'} shadow-sm active:scale-95">
+                                        ${isSelected
+                                            ? `<span onclick="clearProductOnScreen1(event, '${prod.id}')" title="ยกเลิกการเลือก" class="absolute top-1 left-1 w-4 h-4 rounded-full bg-gray-200 hover:bg-red-500 hover:text-white text-gray-600 text-[9px] flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></span>
+                                               <span class="absolute top-1 right-1 w-4 h-4 rounded-full bg-pink-500 text-white text-[9px] flex items-center justify-center shadow-sm"><i class="fa-solid fa-check"></i></span>`
+                                            : ''}
+
+                                        <div class="w-full">
+                                            <!-- Minimal Small Icon -->
+                                            <div class="mt-0.5 mb-1">
+                                                ${getMinimalIconHTML(prod)}
+                                            </div>
+
+                                            <!-- Product Name -->
+                                            <div class="font-cute text-[11px] text-gray-800 line-clamp-2 leading-tight px-0.5 min-h-[26px] flex items-center justify-center">${prod.name}</div>
+                                        </div>
+
+                                        <!-- Price Badge ONLY shown when selected (or subtle option hint for variant items) -->
+                                        ${isSelected
+                                            ? `<div class="mt-1 inline-block bg-pink-500 text-white font-cute text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-sm transition-all">
+                                                ${activeBadgeText}
+                                               </div>`
+                                            : (prod.variants && prod.variants.length > 0
+                                                ? `<div class="mt-1 inline-block text-[9px] text-pink-400 font-cute">กดเลือกรูปแบบ</div>`
+                                                : '')}
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function adjustQty(prodId, delta) {
+            const prod = products.find(p => p.id === prodId);
+            const step = delta;
+            const current = cart[prodId] || 0;
+            const next = Math.max(0, current + step);
+            if (next === 0) {
+                delete cart[prodId];
+            } else {
+                cart[prodId] = next;
+            }
+            updateAllSummaries();
+            renderProductSections();
+        }
+
+        function setExactQty(prodId, val) {
+            const parsed = parseInt(val, 10);
+            if (isNaN(parsed) || parsed <= 0) {
+                delete cart[prodId];
+            } else {
+                cart[prodId] = parsed;
+            }
+            updateAllSummaries();
+            renderProductSections();
+        }
+
+        function getCartSummaryData() {
+            let items = [];
+            let totalTypes = 0;
+            let totalPieces = 0;
+            let totalPrice = 0;
+
+            products.forEach(prod => {
+                const qty = cart[prod.id] || 0;
+                if (qty > 0) {
+                    const chosenVar = selectedVariants[prod.id];
+                    const displayName = chosenVar ? `${prod.name} [${chosenVar.label}]` : prod.name;
+                    const lineTotal = calculateProductLinePrice(prod, qty);
+                    items.push({ ...prod, displayName, qty, lineTotal });
+                    totalTypes += 1;
+                    totalPieces += qty;
+                    totalPrice += lineTotal;
+                }
+            });
+
+            return { items, totalTypes, totalPieces, totalPrice: Math.round(totalPrice * 100) / 100 };
+        }
+
+        function updateAllSummaries() {
+            const { items, totalTypes, totalPieces, totalPrice } = getCartSummaryData();
+
+            // Screen 1 Footer
+            document.getElementById('s1-total-types').textContent = totalTypes;
+            document.getElementById('s1-total-pieces').textContent = totalPieces;
+            document.getElementById('s1-total-price').textContent = totalPrice;
+
+            // Screen 2 List (With Full Quantity Editing Controls & Tier Quick Buttons!) & Totals
+            const s2List = document.getElementById('s2-items-list');
+            if (items.length === 0) {
+                s2List.innerHTML = `
+                    <div class="bg-white/90 rounded-2xl p-6 text-center border border-pink-100">
+                        <div class="text-3xl mb-2">🛒</div>
+                        <p class="font-cute text-gray-600 text-sm">ยังไม่ได้เลือกสินค้าเลยค่ะ</p>
+                        <button onclick="navigateToStep(1)" class="mt-3 text-xs text-pink-600 font-semibold underline">กลับไปเลือกสินค้า</button>
+                    </div>
+                `;
+            } else {
+                s2List.innerHTML = items.map(item => {
+                    const stepSize = getDefaultStepQty(item);
+                    const tierButtonsHTML = (item.priceType === 'tiered' && item.tiers && item.tiers.length > 0)
+                        ? `<div class="flex flex-wrap items-center gap-1 mt-2 pt-2 border-t border-pink-50">
+                            <span class="text-[10px] text-gray-400 mr-1">เลือกเรทด่วน:</span>
+                            ${item.tiers.map(t => `
+                                <button type="button" onclick="setExactQty('${item.id}', ${t.qty})" class="px-2 py-0.5 rounded-full text-[10px] font-cute transition border ${item.qty === t.qty ? 'bg-pink-500 text-white border-pink-500' : 'bg-pink-50/70 text-pink-600 border-pink-200 hover:bg-pink-100'}">
+                                    ${t.qty}ชิ้น (${t.price}฿)
+                                </button>
+                            `).join('')}
+                           </div>`
+                        : '';
+
+                    const rateSubtitle = (item.priceType === 'tiered' && item.tiers && item.tiers.length > 0)
+                        ? `เรท: ${item.tiers.map(t => `${t.qty}/${t.price}฿`).join(' • ')}`
+                        : `${item.price}฿ / ชิ้น`;
+
+                    return `
+                        <div class="bg-white/95 rounded-2xl p-3 shadow-card border border-pink-100">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    ${getProductVisualHTML(item, 'w-10 h-10 text-xl')}
+                                    <div class="min-w-0">
+                                        <div class="font-cute text-xs sm:text-sm text-gray-800 truncate">${item.displayName || item.name}</div>
+                                        <div class="text-[11px] text-gray-500 truncate">${rateSubtitle}</div>
+                                    </div>
+                                </div>
+
+                                <!-- Quantity Editor on Screen 2 -->
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <button type="button" onclick="adjustQty('${item.id}', -${stepSize})" class="w-6 h-6 rounded-full bg-pink-100 hover:bg-pink-200 text-pink-600 flex items-center justify-center transition active:scale-95">
+                                        <i class="fa-solid fa-minus text-[10px]"></i>
+                                    </button>
+                                    <input type="number" min="1" value="${item.qty}" 
+                                           onchange="setExactQty('${item.id}', this.value)"
+                                           class="w-12 h-6 text-center font-cute text-xs text-gray-800 bg-pink-50/60 border border-pink-200 rounded-lg focus:outline-none focus:border-pink-500">
+                                    <button type="button" onclick="adjustQty('${item.id}', ${stepSize})" class="w-6 h-6 rounded-full bg-farm-green hover:bg-farm-greenDark text-white flex items-center justify-center transition active:scale-95">
+                                        <i class="fa-solid fa-plus text-[10px]"></i>
+                                    </button>
+                                    <span class="font-cute text-sm sm:text-base font-bold text-pink-600 min-w-[42px] text-right">
+                                        ${item.lineTotal}฿
+                                    </span>
+                                </div>
+                            </div>
+                            ${tierButtonsHTML}
+                        </div>
+                    `;
+                }).join('');
+            }
+            document.getElementById('s2-total-types').textContent = totalTypes;
+            document.getElementById('s2-total-pieces').textContent = totalPieces;
+            document.getElementById('s2-total-price').textContent = totalPrice;
+
+            // Screen 3 List & Totals
+            const s3List = document.getElementById('s3-items-list');
+            s3List.innerHTML = items.map(item => `
+                <div class="pt-2 first:pt-0 flex items-center justify-between text-xs sm:text-sm">
+                    <div class="flex items-center gap-2">
+                        ${getProductVisualHTML(item, 'w-7 h-7 text-base')}
+                        <span class="font-cute text-gray-800">${item.displayName || item.name}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="bg-pink-50 text-gray-600 font-semibold px-2 py-0.5 rounded-full text-xs">×${item.qty}</span>
+                        <span class="font-cute font-bold text-gray-800 w-12 text-right">${item.lineTotal}฿</span>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('s3-total-types').textContent = totalTypes;
+            document.getElementById('s3-total-pieces').textContent = totalPieces;
+            document.getElementById('s3-total-price').textContent = totalPrice;
+        }
+
+        // -----------------------------------------------------------------
+        // 3. NAVIGATION, ORDER SUBMISSION & CLIPBOARD HELPERS
+        // -----------------------------------------------------------------
+        function switchMainMode(mode) {
+            const customerView = document.getElementById('customer-app-view');
+            const adminView = document.getElementById('admin-app-view');
+            const btnCustomer = document.getElementById('mode-btn-customer');
+            const btnAdmin = document.getElementById('mode-btn-admin');
+
+            if (mode === 'customer') {
+                customerView.classList.remove('hidden');
+                adminView.classList.add('hidden');
+                btnCustomer.className = 'px-3 py-1 rounded-full transition-all bg-pink-500 text-white shadow-sm font-semibold';
+                btnAdmin.className = 'px-3 py-1 rounded-full transition-all text-pink-700 hover:bg-pink-200/60';
+                renderOrderDetailsView(currentViewingOrderCode);
+            } else {
+                customerView.classList.add('hidden');
+                adminView.classList.remove('hidden');
+                btnAdmin.className = 'px-3 py-1 rounded-full transition-all bg-pink-500 text-white shadow-sm font-semibold';
+                btnCustomer.className = 'px-3 py-1 rounded-full transition-all text-pink-700 hover:bg-pink-200/60';
+                renderAdminOrders();
+                renderAdminProducts();
+            }
+        }
+
+        function navigateToStep(stepNumber) {
+            currentStep = stepNumber;
+            switchMainMode('customer');
+
+            for (let i = 1; i <= 5; i++) {
+                const screenEl = document.getElementById(`screen-${i}`);
+                if (screenEl) {
+                    if (i === stepNumber) {
+                        screenEl.classList.remove('hidden');
+                    } else {
+                        screenEl.classList.add('hidden');
+                    }
+                }
+            }
+
+            updateAllSummaries();
+            if (stepNumber === 4 || stepNumber === 5) {
+                renderOrderDetailsView(currentViewingOrderCode);
+            }
+        }
+
+        function proceedToStep2() {
+            const { totalTypes } = getCartSummaryData();
+            if (totalTypes === 0) {
+                showToast('กรุณาเลือกสินค้าอย่างน้อย 1 ชิ้นก่อนดูยอดรวมนะคะ 🛒', 'error');
+                return;
+            }
+            navigateToStep(2);
+        }
+
+        function submitOrder() {
+            const { items, totalTypes, totalPieces, totalPrice } = getCartSummaryData();
+            if (totalTypes === 0) {
+                showToast('ไม่มีสินค้าในตะกร้า กรุณาเลือกสินค้าก่อนค่ะ', 'error');
+                navigateToStep(1);
+                return;
+            }
+
+            const tagInput = document.getElementById('farm-tag-input');
+            const errorMsg = document.getElementById('tag-error-msg');
+            const rawTag = tagInput.value.trim().replace(/^#+/, '');
+
+            if (!rawTag) {
+                errorMsg.classList.remove('hidden');
+                tagInput.focus();
+                showToast('กรุณากรอกแท็กรับของ (#) ก่อนยืนยันออเดอร์นะคะ', 'error');
+                return;
+            }
+            errorMsg.classList.add('hidden');
+
+            // Generate new Order Code
+            const randomNum = Math.floor(10000 + Math.random() * 90000);
+            const newCode = 'T' + randomNum;
+
+            // Format current Thai Buddhist Date & Time
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yyyy = now.getFullYear() + 543;
+            const hh = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            const ss = String(now.getSeconds()).padStart(2, '0');
+            const formattedDate = `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+
+            const newOrder = {
+                code: newCode,
+                tag: rawTag,
+                createdAt: formattedDate,
+                status: 'pending',
+                isDemo: false,
+                items: items.map(it => ({
+                    id: it.id,
+                    name: it.displayName || it.name,
+                    price: it.price,
+                    qty: it.qty,
+                    svgKey: it.svgKey,
+                    emoji: it.emoji,
+                    imageUrl: it.imageUrl,
+                    itemState: 0
+                })),
+                totalTypes,
+                totalPieces,
+                totalPrice
+            };
+
+            orders.unshift(newOrder);
+            currentViewingOrderCode = newCode;
+            updateAdminBadge();
+
+            navigateToStep(4);
+            showToast(`สร้างคำสั่งซื้อ ${newCode} สำเร็จแล้วค่ะ! 🎉`);
+        }
+
+        function resetAndGoHome() {
+            cart = {};
+            selectedVariants = {};
+            document.getElementById('farm-tag-input').value = '';
+            updateAllSummaries();
+            renderProductSections();
+            navigateToStep(1);
+        }
+
+        function copyTextToClipboard(text, successMsg) {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                showToast(successMsg);
+            } catch (err) {
+                showToast('ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาคัดลอกด้วยตนเองค่ะ', 'error');
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        function copyOrderCodeOnly() {
+            copyTextToClipboard(currentViewingOrderCode, `คัดลอกโค้ด ${currentViewingOrderCode} เรียบร้อยแล้วค่ะ 📋`);
+        }
+
+        function copySellerMessage() {
+            const msg = document.getElementById('s4-seller-message').textContent;
+            copyTextToClipboard(msg, 'คัดลอกข้อความสำหรับส่งให้ผู้ขายเรียบร้อยแล้วค่ะ 💌');
+        }
+
+        function copyCurrentTag() {
+            const tag = document.getElementById('s5-tag').textContent;
+            copyTextToClipboard(tag, `คัดลอกแท็กรับของ #${tag} เรียบร้อยค่ะ`);
+        }
+
+        // -----------------------------------------------------------------
+        // 4. SCREEN 4 & 5 RENDERING (Read-Only Customer Progress & Admin Item Tap)
+        // -----------------------------------------------------------------
+        function toggleOrderItemDeliveryState(orderCode, itemIndex) {
+            const targetCode = orderCode || currentViewingOrderCode;
+            const order = orders.find(o => o.code === targetCode);
+            if (!order || !order.items[itemIndex]) return;
+
+            const current = order.items[itemIndex].itemState || 0;
+            // Cycle: 1st tap -> 1 (Green: ส่งแล้ว), 2nd tap -> 2 (Yellow: รอลูกค้ารับของ), 3rd tap -> 3 (Red: ของหมด), 4th tap -> 0 (Reset)
+            const nextState = (current + 1) % 4;
+            order.items[itemIndex].itemState = nextState;
+
+            const stateMessages = {
+                0: `รีเซ็ตสถานะ "${order.items[itemIndex].name}" เป็นรอจัดส่ง`,
+                1: `${order.items[itemIndex].name}: ส่งแล้ว ✅`,
+                2: `${order.items[itemIndex].name}: รอลูกค้ารับของ ⏳`,
+                3: `${order.items[itemIndex].name}: ของหมด ❌`
+            };
+            showToast(stateMessages[nextState]);
+
+            renderOrderDetailsView(currentViewingOrderCode);
+            renderAdminOrders();
+        }
+
+        function renderOrderDetailsView(orderCode) {
+            const order = orders.find(o => o.code.toUpperCase() === orderCode.toUpperCase()) || orders[0];
+            if (!order) return;
+            currentViewingOrderCode = order.code;
+
+            // Populate Screen 4
+            document.getElementById('s4-order-code').textContent = order.code;
+            const messageText = `ลิงก์สินค้าที่สั่ง =\nhttps://lilithstore.demo/order/${order.code}\n\nโค้ดสินค้าของท่านคือ ${order.code}\nกรุณาส่งข้อความนี้ไปยังผู้ขาย\nเพื่อรับสินค้า ขอบคุณค่ะ ♡`;
+            document.getElementById('s4-seller-message').textContent = messageText;
+
+            // Populate Screen 5
+            document.getElementById('s5-code').textContent = order.code;
+            document.getElementById('s5-datetime').textContent = order.createdAt;
+            document.getElementById('s5-top-price').textContent = order.totalPrice;
+            document.getElementById('s5-tag').textContent = order.tag;
+            document.getElementById('s5-grid-count').textContent = order.totalTypes;
+            document.getElementById('s5-total-types').textContent = order.totalTypes;
+            document.getElementById('s5-total-pieces').textContent = order.totalPieces;
+            document.getElementById('s5-total-price').textContent = order.totalPrice;
+
+            // Populate Customer Read-Only Order Progress Badge
+            const progressBadgeEl = document.getElementById('s5-customer-progress-badge');
+            if (progressBadgeEl) {
+                const statusMap = {
+                    pending: `<span class="bg-pink-100 text-pink-700 border border-pink-200 px-3 py-1 rounded-full text-xs font-cute inline-flex items-center gap-1.5"><i class="fa-solid fa-box"></i> รอคิวจัดส่ง</span>`,
+                    preparing: `<span class="bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1 rounded-full text-xs font-cute inline-flex items-center gap-1.5"><i class="fa-solid fa-hourglass-half"></i> กำลังเตรียมสินค้า</span>`,
+                    shipped: `<span class="bg-green-100 text-green-700 border border-green-300 px-3 py-1 rounded-full text-xs font-cute inline-flex items-center gap-1.5"><i class="fa-solid fa-truck-fast"></i> จัดส่งเรียบร้อยแล้ว</span>`,
+                    completed: `<span class="bg-emerald-600 text-white border border-emerald-700 px-3 py-1 rounded-full text-xs font-cute inline-flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> เสร็จสิ้น</span>`
+                };
+                progressBadgeEl.innerHTML = statusMap[order.status] || statusMap.pending;
+            }
+
+            // Render Screen 5 Read-Only Product Grid Cards (Customers can only view their order progress)
+            const gridContainer = document.getElementById('s5-items-grid');
+            gridContainer.innerHTML = order.items.map((item) => {
+                const st = item.itemState || 0;
+                let cardStyle = 'bg-pink-50/40 border-pink-100 text-gray-800';
+                let badgeHTML = `<span class="text-[10px] text-gray-500 bg-white px-2 py-0.5 rounded-full border border-pink-100 mt-1">รอส่ง</span>`;
+
+                if (st === 1) {
+                    cardStyle = 'bg-green-50 border-green-400 text-green-900';
+                    badgeHTML = `<span class="text-[10px] font-bold text-white bg-green-500 px-2 py-0.5 rounded-full mt-1"><i class="fa-solid fa-check mr-0.5"></i>ส่งแล้ว</span>`;
+                } else if (st === 2) {
+                    cardStyle = 'bg-amber-50 border-amber-400 text-amber-900';
+                    badgeHTML = `<span class="text-[10px] font-bold text-amber-900 bg-amber-400 px-2 py-0.5 rounded-full mt-1"><i class="fa-solid fa-clock mr-0.5"></i>รอรับของ</span>`;
+                } else if (st === 3) {
+                    cardStyle = 'bg-rose-50 border-rose-400 text-rose-900 opacity-90';
+                    badgeHTML = `<span class="text-[10px] font-bold text-white bg-rose-500 px-2 py-0.5 rounded-full mt-1"><i class="fa-solid fa-xmark mr-0.5"></i>ของหมด</span>`;
+                }
+
+                return `
+                    <div class="${cardStyle} border rounded-2xl p-2 flex flex-col items-center justify-center text-center shadow-sm select-none">
+                        ${getProductVisualHTML(item, 'w-10 h-10 text-2xl bg-white')}
+                        <div class="text-[11px] font-semibold mt-1 truncate max-w-full">${item.name}</div>
+                        <div class="font-cute text-xs font-bold mt-0.5">×${item.qty}</div>
+                        ${badgeHTML}
+                    </div>
+                `;
+            }).join('');
+
+            // Calculate & Render Delivery Item Summary Breakdown
+            const sentItems = order.items.filter(i => i.itemState === 1);
+            const waitingItems = order.items.filter(i => !i.itemState || i.itemState === 0 || i.itemState === 2);
+            const outItems = order.items.filter(i => i.itemState === 3);
+
+            const sumPieces = arr => arr.reduce((acc, item) => acc + item.qty, 0);
+            const formatNames = arr => arr.length > 0
+                ? arr.map(i => `${i.name} (×${i.qty})${i.itemState === 2 ? ' [รอลูกค้ารับ]' : ''}`).join(', ')
+                : 'ไม่มีรายการ';
+
+            const summaryEl = document.getElementById('s5-delivery-item-summary');
+            if (summaryEl) {
+                summaryEl.innerHTML = `
+                    <div class="p-2.5 rounded-xl bg-green-50 border border-green-200">
+                        <div class="flex items-center justify-between font-cute text-green-700">
+                            <span>✅ ส่งแล้ว (${sentItems.length} รายการ)</span>
+                            <span>รวม ${sumPieces(sentItems)} ชิ้น</span>
+                        </div>
+                        <div class="text-[11px] text-green-800 mt-1">${formatNames(sentItems)}</div>
+                    </div>
+
+                    <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200">
+                        <div class="flex items-center justify-between font-cute text-amber-700">
+                            <span>⏳ รอส่ง / รอลูกค้ารับของ (${waitingItems.length} รายการ)</span>
+                            <span>รวม ${sumPieces(waitingItems)} ชิ้น</span>
+                        </div>
+                        <div class="text-[11px] text-amber-800 mt-1">${formatNames(waitingItems)}</div>
+                    </div>
+
+                    <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-200">
+                        <div class="flex items-center justify-between font-cute text-rose-700">
+                            <span>❌ ของหมด (${outItems.length} รายการ)</span>
+                            <span>รวม ${sumPieces(outItems)} ชิ้น</span>
+                        </div>
+                        <div class="text-[11px] text-rose-800 mt-1">${formatNames(outItems)}</div>
+                    </div>
+                `;
+            }
+        }
+
+        function switchAdminTab(tab) {
+            const ordersPanel = document.getElementById('admin-panel-orders');
+            const productsPanel = document.getElementById('admin-panel-products');
+            const tabOrders = document.getElementById('admin-tab-orders');
+            const tabProducts = document.getElementById('admin-tab-products');
+
+            if (tab === 'orders') {
+                ordersPanel.classList.remove('hidden');
+                productsPanel.classList.add('hidden');
+                tabOrders.className = 'font-cute text-sm sm:text-base px-5 py-2.5 rounded-2xl bg-pink-500 text-white shadow-sm transition flex items-center gap-2';
+                tabProducts.className = 'font-cute text-sm sm:text-base px-5 py-2.5 rounded-2xl bg-white text-gray-600 hover:bg-pink-50 border border-pink-200 transition flex items-center gap-2';
+            } else {
+                ordersPanel.classList.add('hidden');
+                productsPanel.classList.remove('hidden');
+                tabProducts.className = 'font-cute text-sm sm:text-base px-5 py-2.5 rounded-2xl bg-pink-500 text-white shadow-sm transition flex items-center gap-2';
+                tabOrders.className = 'font-cute text-sm sm:text-base px-5 py-2.5 rounded-2xl bg-white text-gray-600 hover:bg-pink-50 border border-pink-200 transition flex items-center gap-2';
+            }
+        }
+
+        function updateAdminBadge() {
+            document.getElementById('admin-badge-count').textContent = orders.length;
+            const phoneBadge = document.getElementById('phone-admin-badge');
+            if (phoneBadge) phoneBadge.textContent = orders.length;
+            document.getElementById('admin-total-orders-count').textContent = orders.length;
+            document.getElementById('admin-total-products-count').textContent = products.length;
+        }
+
+        function deleteOrderFromAdmin(code) {
+            orders = orders.filter(o => o.code !== code);
+            if (currentViewingOrderCode === code && orders.length > 0) {
+                currentViewingOrderCode = orders[0].code;
+            }
+            updateAdminBadge();
+            renderAdminOrders();
+            showToast(`ลบคำสั่งซื้อ ${code} เรียบร้อยแล้วค่ะ 🗑️`);
+        }
+
+        function renderAdminOrders() {
+            updateAdminBadge();
+            const filterType = document.getElementById('admin-data-filter').value;
+            const filtered = orders.filter(o => {
+                if (filterType === 'session') return !o.isDemo;
+                if (filterType === 'demo') return o.isDemo;
+                return true;
+            });
+
+            // Stats
+            document.getElementById('stat-all').textContent = filtered.length;
+            document.getElementById('stat-pending').textContent = filtered.filter(o => o.status === 'pending').length;
+            document.getElementById('stat-preparing').textContent = filtered.filter(o => o.status === 'preparing').length;
+            const rev = filtered.reduce((acc, o) => acc + o.totalPrice, 0);
+            document.getElementById('stat-revenue').textContent = rev + '฿';
+
+            const container = document.getElementById('admin-orders-container');
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-white rounded-2xl p-8 text-center border border-pink-100">
+                        <p class="font-cute text-gray-500">ไม่มีรายการคำสั่งซื้อในหมวดที่เลือกค่ะ</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(o => {
+                const badgeHTML = o.isDemo
+                    ? `<span class="bg-purple-100 text-purple-700 text-[11px] font-bold px-2 py-0.5 rounded-full">ข้อมูลตัวอย่าง (Demo)</span>`
+                    : `<span class="bg-green-100 text-green-700 text-[11px] font-bold px-2 py-0.5 rounded-full">สร้างใหม่ในเซสชันนี้</span>`;
+
+                const sentItems = o.items.filter(i => i.itemState === 1);
+                const waitingItems = o.items.filter(i => !i.itemState || i.itemState === 0 || i.itemState === 2);
+                const outItems = o.items.filter(i => i.itemState === 3);
+                const sumPieces = arr => arr.reduce((acc, item) => acc + item.qty, 0);
+
+                return `
+                    <div class="bg-white rounded-2xl p-4 shadow-card border border-pink-100 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-cute text-lg text-pink-600">${o.code}</span>
+                                    ${badgeHTML}
+                                </div>
+                                <span class="font-cute text-lg font-bold text-pink-600">${o.totalPrice}฿</span>
+                            </div>
+                            <div class="text-xs text-gray-500 mb-2.5 flex items-center justify-between">
+                                <span><i class="fa-regular fa-clock mr-1"></i>${o.createdAt}</span>
+                                <span class="bg-pink-50 text-pink-700 px-2.5 py-0.5 rounded-lg font-semibold">แท็ก: #${o.tag}</span>
+                            </div>
+
+                            <!-- Seller Interactive Tap Area -->
+                            <div class="mb-2 flex items-center justify-between text-[11px] text-pink-600 font-medium bg-pink-50/70 px-2.5 py-1 rounded-lg border border-pink-100">
+                                <span>👆 แม่ค้าจิ้มที่สินค้า: 1ที=เขียวส่งแล้ว | 2ที=เหลืองรอรับ | 3ที=ของหมด</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 mb-3">
+                                ${o.items.map((item, idx) => {
+                                    const st = item.itemState || 0;
+                                    let cardStyle = 'bg-pink-50/50 border-pink-200 text-gray-800 hover:border-pink-400';
+                                    let stBadge = '<span class="text-[9px] text-gray-500 bg-white px-1.5 py-0.2 rounded-full border border-pink-100">รอส่ง</span>';
+                                    if (st === 1) {
+                                        cardStyle = 'bg-green-100 border-green-500 text-green-900 ring-2 ring-green-200';
+                                        stBadge = '<span class="text-[9px] font-bold text-white bg-green-500 px-1.5 py-0.2 rounded-full">ส่งแล้ว</span>';
+                                    } else if (st === 2) {
+                                        cardStyle = 'bg-amber-100 border-amber-400 text-amber-900 ring-2 ring-amber-200';
+                                        stBadge = '<span class="text-[9px] font-bold text-amber-900 bg-amber-400 px-1.5 py-0.2 rounded-full">รอรับของ</span>';
+                                    } else if (st === 3) {
+                                        cardStyle = 'bg-rose-100 border-rose-500 text-rose-900 ring-2 ring-rose-200';
+                                        stBadge = '<span class="text-[9px] font-bold text-white bg-rose-500 px-1.5 py-0.2 rounded-full">ของหมด</span>';
+                                    }
+                                    return `
+                                        <button type="button" onclick="toggleOrderItemDeliveryState('${o.code}', ${idx})" class="${cardStyle} border rounded-xl p-2 flex flex-col items-center text-center transition active:scale-95">
+                                            <span class="text-lg">${item.emoji || '📦'}</span>
+                                            <span class="text-[11px] font-cute truncate max-w-full mt-0.5">${item.name}</span>
+                                            <span class="text-[10px] font-bold mb-1">×${item.qty}</span>
+                                            ${stBadge}
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+
+                            <!-- Quick Summary inside Admin Card -->
+                            <div class="bg-gray-50 rounded-xl p-2 border border-gray-200 text-[11px] space-y-1 mb-3">
+                                <div class="flex justify-between text-green-700 font-medium">
+                                    <span>✅ ส่งแล้ว: ${sentItems.map(i => i.name).join(', ') || '-'}</span>
+                                    <span>${sumPieces(sentItems)} ชิ้น</span>
+                                </div>
+                                <div class="flex justify-between text-amber-700 font-medium">
+                                    <span>⏳ รอส่ง/รอรับ: ${waitingItems.map(i => i.name).join(', ') || '-'}</span>
+                                    <span>${sumPieces(waitingItems)} ชิ้น</span>
+                                </div>
+                                <div class="flex justify-between text-rose-700 font-medium">
+                        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-pink-100">
+                            <div class="flex flex-wrap items-center gap-1">
+                                <button onclick="changeOrderStatusFromAdmin('${o.code}', 'pending')" class="px-2 py-1 rounded-lg text-[11px] font-cute ${o.status === 'pending' ? 'bg-pink-500 text-white' : 'bg-gray-100 text-gray-600'}">ยังไม่ส่ง</button>
+                                <button onclick="changeOrderStatusFromAdmin('${o.code}', 'preparing')" class="px-2 py-1 rounded-lg text-[11px] font-cute ${o.status === 'preparing' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'}">กำลังเตรียม</button>
+                                <button onclick="changeOrderStatusFromAdmin('${o.code}', 'shipped')" class="px-2 py-1 rounded-lg text-[11px] font-cute ${o.status === 'shipped' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600'}">จัดส่งแล้ว</button>
+                                <button onclick="changeOrderStatusFromAdmin('${o.code}', 'completed')" class="px-2 py-1 rounded-lg text-[11px] font-cute ${o.status === 'completed' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600'}"><i class="fa-solid fa-check-double mr-0.5"></i>เสร็จสิ้น</button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="openOrderInScreen5('${o.code}')" class="text-xs font-cute text-pink-600 hover:underline flex items-center gap-1">
+                                    ดูมุมมองลูกค้า <i class="fa-solid fa-eye"></i>
+                                </button>
+                                <button onclick="deleteOrderFromAdmin('${o.code}')" title="ลบออเดอร์นี้" class="w-7 h-7 rounded-lg bg-red-50 hover:bg-red-500 text-red-500 hover:text-white flex items-center justify-center transition">
+                                    <i class="fa-regular fa-trash-can text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function changeOrderStatusFromAdmin(code, newStatus) {
+            const ord = orders.find(o => o.code === code);
+            if (ord) {
+                ord.status = newStatus;
+                renderAdminOrders();
+                showToast(`เปลี่ยนสถานะออเดอร์ ${code} เรียบร้อยค่ะ`);
+            }
+        }
+
+        function openOrderInScreen5(code) {
+            currentViewingOrderCode = code;
+            navigateToStep(5);
+        }
+
+        // -----------------------------------------------------------------
+        // 6. ADMIN PRODUCT & FLEXIBLE RATE MANAGEMENT
+        // -----------------------------------------------------------------
+        function togglePriceInputModeAdmin() {
+            const mode = document.getElementById('new-prod-price-type').value;
+            const singleBox = document.getElementById('admin-single-price-box');
+            const tieredBox = document.getElementById('admin-tiered-price-box');
+            if (mode === 'single') {
+                singleBox.classList.remove('hidden');
+                tieredBox.classList.add('hidden');
+            } else {
+                singleBox.classList.add('hidden');
+                tieredBox.classList.remove('hidden');
+            }
+        }
+
+        function handleCategoryDefaultRateHint() {
+            const catId = document.getElementById('new-prod-cat').value;
+            const editId = document.getElementById('edit-prod-id').value;
+            if (editId) return; // Don't overwrite when editing an existing item
+
+            const defaultTierMap = {
+                snacks: { type: 'tiered', tiers: '10/2 50/8 100/15', single: 2 },
+                low_mat: { type: 'tiered', tiers: '10/1 100/8', single: 1 },
+                high_mat: { type: 'tiered', tiers: '10/2 50/8 100/12', single: 2 },
+                veg_fruit: { type: 'tiered', tiers: '10/1 100/6', single: 1 },
+                tools: { type: 'tiered', tiers: '10/1 100/8', single: 1 },
+                upgrade: { type: 'single', tiers: '89/10 89/15', single: 10 },
+                coins: { type: 'single', tiers: '89/10', single: 20 },
+                vouchers: { type: 'single', tiers: '1/10', single: 10 },
+                truck_bills: { type: 'single', tiers: '10/10', single: 10 }
+            };
+
+            const cfg = defaultTierMap[catId];
+            if (cfg) {
+                document.getElementById('new-prod-price-type').value = cfg.type;
+                document.getElementById('new-prod-tiers').value = cfg.tiers;
+                document.getElementById('new-prod-price').value = cfg.single;
+                togglePriceInputModeAdmin();
+            }
+        }
+
+        function populateBulkCategorySelector() {
+            const sel = document.getElementById('bulk-cat-select');
+            if (!sel) return;
+            const realCats = CATEGORIES.filter(c => c.id !== 'all');
+            sel.innerHTML = realCats.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+            loadBulkCatRateInput();
+        }
+
+        function loadBulkCatRateInput() {
+            const sel = document.getElementById('bulk-cat-select');
+            const input = document.getElementById('bulk-cat-rate-input');
+            if (!sel || !input) return;
+            const catObj = CATEGORIES.find(c => c.id === sel.value);
+            if (catObj) {
+                input.value = catObj.rateNote || '';
+            }
+        }
+
+        function applyBulkCategoryRate() {
+            const catId = document.getElementById('bulk-cat-select').value;
+            const rawRate = document.getElementById('bulk-cat-rate-input').value.trim();
+            const catObj = CATEGORIES.find(c => c.id === catId);
+            if (!catObj) return;
+
+            catObj.rateNote = rawRate;
+            const parsedTiers = parseTiersString(rawRate);
+
+            // If valid X/Y tiers were entered, update all tiered products in this category automatically
+            if (parsedTiers.length > 0) {
+                products.forEach(p => {
+                    if (p.category === catId && p.priceType === 'tiered') {
+                        p.tiers = parsedTiers;
+                    }
+                });
+            }
+
+            renderProductSections();
+            renderAdminProducts();
+            updateAllSummaries();
+            showToast(`อัปเดตเรทหมวด "${catObj.name}" เป็น "${rawRate}" เรียบร้อยค่ะ ✨`);
+        }
+
+        function renderAdminProducts() {
+            updateAdminBadge();
+            populateBulkCategorySelector();
+            const container = document.getElementById('admin-products-list');
+            container.innerHTML = products.map(p => {
+                const catObj = CATEGORIES.find(c => c.id === p.category);
+                const priceDetail = (p.priceType === 'tiered' && p.tiers && p.tiers.length > 0)
+                    ? `เรท: ${formatTiersToString(p.tiers)}`
+                    : `ราคาเดี่ยว: ${p.price}฿`;
+
+                return `
+                    <div class="p-3 rounded-2xl border border-pink-100 bg-pink-50/30 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            ${getProductVisualHTML(p, 'w-10 h-10 text-xl bg-white')}
+                            <div class="min-w-0">
+                                <div class="font-cute text-sm text-gray-800 truncate">${p.name}</div>
+                                <div class="text-[11px] text-pink-600 font-medium truncate">${priceDetail}</div>
+                                <div class="text-[10px] text-gray-400">${catObj ? catObj.name : p.category}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button onclick="startEditProductAdmin('${p.id}')" class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-600 flex items-center justify-center transition" title="แก้ไขสินค้า/เรทราคา">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </button>
+                            <button onclick="deleteProductAdmin('${p.id}')" class="w-8 h-8 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center transition" title="ลบสินค้า">
+                                <i class="fa-regular fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function startEditProductAdmin(prodId) {
+            const prod = products.find(p => p.id === prodId);
+            if (!prod) return;
+
+            document.getElementById('edit-prod-id').value = prod.id;
+            document.getElementById('new-prod-icon').value = prod.imageUrl || prod.emoji || '';
+            document.getElementById('new-prod-name').value = prod.name;
+            document.getElementById('new-prod-cat').value = prod.category;
+            document.getElementById('new-prod-price-type').value = prod.priceType || 'single';
+            document.getElementById('new-prod-price').value = prod.price || 1;
+            document.getElementById('new-prod-tiers').value = formatTiersToString(prod.tiers) || '10/1 100/8';
+
+            togglePriceInputModeAdmin();
+            document.getElementById('save-prod-btn-text').textContent = 'อัปเดตสินค้า';
+            document.getElementById('cancel-edit-prod-btn').classList.remove('hidden');
+            showToast(`กำลังแก้ไข "${prod.name}" ปรับเรทราคาด้านบนได้เลยค่ะ`);
+        }
+
+        function resetProductFormAdmin() {
+            document.getElementById('edit-prod-id').value = '';
+            document.getElementById('new-prod-icon').value = '';
+            document.getElementById('new-prod-name').value = '';
+            document.getElementById('save-prod-btn-text').textContent = 'บันทึกสินค้า';
+            document.getElementById('cancel-edit-prod-btn').classList.add('hidden');
+        }
+
+        function saveProductAdmin() {
+            const editId = document.getElementById('edit-prod-id').value;
+            const iconRaw = document.getElementById('new-prod-icon').value.trim();
+            const name = document.getElementById('new-prod-name').value.trim();
+            const category = document.getElementById('new-prod-cat').value;
+            const priceType = document.getElementById('new-prod-price-type').value;
+            const singlePrice = parseFloat(document.getElementById('new-prod-price').value) || 1;
+            const tiersRaw = document.getElementById('new-prod-tiers').value.trim();
+
+            if (!name) {
+                showToast('กรุณากรอกชื่อสินค้าก่อนบันทึกค่ะ', 'error');
+                return;
+            }
+
+            const isUrl = /^https?:\/\//i.test(iconRaw) || /^data:image\//i.test(iconRaw);
+            const parsedTiers = parseTiersString(tiersRaw);
+
+            if (priceType === 'tiered' && parsedTiers.length === 0) {
+                showToast('กรุณากรอกเรทราคาในรูปแบบ จำนวน/ราคา เช่น 10/2 50/8 100/15 ค่ะ', 'error');
+                return;
+            }
+
+            if (editId) {
+                const idx = products.findIndex(p => p.id === editId);
+                if (idx > -1) {
+                    products[idx].name = name;
+                    products[idx].category = category;
+                    products[idx].priceType = priceType;
+                    products[idx].price = singlePrice;
+                    products[idx].tiers = parsedTiers;
+                    if (isUrl) {
+                        products[idx].imageUrl = iconRaw;
+                    } else if (iconRaw) {
+                        products[idx].emoji = iconRaw;
+                        delete products[idx].imageUrl;
+                    }
+                }
+                showToast(`อัปเดตสินค้า "${name}" เรียบร้อยแล้วค่ะ ✨`);
+            } else {
+                const newProd = {
+                    id: 'p_' + Date.now(),
+                    name,
+                    category,
+                    priceType,
+                    price: singlePrice,
+                    tiers: parsedTiers,
+                    emoji: (!isUrl && iconRaw) ? iconRaw : '🎁',
+                    imageUrl: isUrl ? iconRaw : undefined
+                };
+                products.push(newProd);
+                showToast(`เพิ่มสินค้า "${name}" เข้าสู่ร้าน Lilith store เรียบร้อยค่ะ 🌸`);
+            }
+
+            resetProductFormAdmin();
+            renderProductSections();
+            renderAdminProducts();
+            updateAllSummaries();
+        }
+
+        function deleteProductAdmin(prodId) {
+            products = products.filter(p => p.id !== prodId);
+            delete cart[prodId];
+            renderProductSections();
+            renderAdminProducts();
+            updateAllSummaries();
+            showToast('ลบสินค้าออกจากรายการเรียบร้อยค่ะ');
+        }
+
+        // -----------------------------------------------------------------
+        // 7. ORDER LOOKUP MODAL & TOAST NOTIFICATIONS
+        // -----------------------------------------------------------------
+        function openOrderLookupModal() {
+            document.getElementById('lookup-modal').classList.remove('hidden');
+            document.getElementById('lookup-code-input').focus();
+        }
+
+        function closeOrderLookupModal() {
+            document.getElementById('lookup-modal').classList.add('hidden');
+        }
+
+        function performOrderLookup() {
+            const code = document.getElementById('lookup-code-input').value.trim().toUpperCase();
+            const found = orders.find(o => o.code.toUpperCase() === code);
+            if (!found) {
+                showToast(`ไม่พบคำสั่งซื้อโค้ด "${code}" ลองใช้โค้ด T41928 ดูนะคะ`, 'error');
+                return;
+            }
+            closeOrderLookupModal();
+            currentViewingOrderCode = found.code;
+            navigateToStep(5);
+            showToast(`เปิดข้อมูลคำสั่งซื้อ ${found.code} เรียบร้อยค่ะ`);
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgClass = type === 'error' ? 'bg-red-500' : 'bg-pink-600';
+            toast.className = `${bgClass} text-white px-4 py-2.5 rounded-2xl shadow-lg text-xs sm:text-sm font-medium flex items-center gap-2 transition-all duration-300 pointer-events-auto border border-white/30`;
+            toast.innerHTML = `
+                <i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 2800);
+        }
+
+        // -----------------------------------------------------------------
+        // INITIALIZATION ON LOAD
+        // -----------------------------------------------------------------
+        window.onload = function () {
+            renderCategories();
+            renderProductSections();
+            updateAllSummaries();
+            renderOrderDetailsView('T41928');
+            updateAdminBadge();
+        };
+    </script>
+</body>
+</html>
